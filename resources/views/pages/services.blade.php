@@ -1,188 +1,75 @@
 @extends('layouts.app')
 
 @section('title', 'Nos services')
-@section('meta_description', 'Conseil agricole, aquaculture, gestion de projets, études de faisabilité — Découvrez tous les services AgriFish pour l\'agriculture africaine.')
+@section('meta_description', 'Conseil agricole, aquaculture et études techniques pour vos projets en Afrique.')
+@section('og_title', 'Nos services')
+@section('og_description', 'Conseil agricole, aquaculture et études techniques pour vos projets en Afrique.')
+@section('og_url', url()->current())
 
 @section('content')
+<section class="relative overflow-hidden bg-primary-dark text-white">
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 36px 36px;"></div>
+    <div class="max-w-content mx-auto px-4 lg:px-8 pt-20 pb-20 lg:pt-28 lg:pb-24 relative z-10 text-center">
+        <p class="text-sm font-bold uppercase tracking-[0.24em] text-gold-light">Nos services</p>
+        <h1 class="mt-4 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-7xl">Agriculture, aquaculture et études techniques.</h1>
+        <p class="mx-auto mt-6 max-w-3xl text-lg leading-8 text-white/78 lg:text-xl">Des prestations claires pour concevoir, sécuriser et améliorer vos projets avec une logique terrain et des livrables actionnables.</p>
+    </div>
+</section>
 
-{{-- Hero --}}
-<x-hero-inner
-    badge="Notre expertise"
-    title="Nos <span class='text-gold-light'>services</span>"
-    subtitle="Une offre complète d'accompagnement agricole et aquacole pour structurer, optimiser et développer votre activité."
-/>
-
-{{-- Services Agriculture --}}
-<section class="py-24 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center gap-4 mb-12">
-            <div class="w-14 h-14 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
-                <span class="text-3xl">🌱</span>
-            </div>
-            <div>
-                <span class="text-primary font-semibold text-sm uppercase tracking-wider">Pôle 1</span>
-                <h2 class="text-3xl font-bold text-dark">Agriculture</h2>
-            </div>
-        </div>
-
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+<section class="bg-white py-20 lg:py-24">
+    <div class="max-w-content mx-auto px-4 lg:px-8">
+        <div class="grid gap-6 lg:grid-cols-3">
             @foreach([
-                [
-                    'title' => 'Conseil & diagnostic agricole',
-                    'desc'  => 'Analyse du sol, diagnostic des cultures, recommandations d\'intrants et de pratiques culturales adaptées à votre contexte.',
-                    'items' => ['Analyse de sol et cartographie', 'Plan de fumure personnalisé', 'Choix variétal adapté', 'Gestion des nuisibles'],
-                ],
-                [
-                    'title' => 'Gestion de projets agricoles',
-                    'desc'  => 'Accompagnement complet de vos projets de la conception à la réalisation, avec suivi en temps réel sur notre plateforme.',
-                    'items' => ['Élaboration du plan de projet', 'Suivi des étapes et jalons', 'Gestion documentaire', 'Rapport d\'avancement'],
-                ],
-                [
-                    'title' => 'Études de faisabilité',
-                    'desc'  => 'Analyses économiques, études de marché et plans d\'affaires pour sécuriser vos investissements agricoles.',
-                    'items' => ['Étude de marché', 'Analyse coût-bénéfice', 'Plan d\'affaires bancable', 'Recherche de financement'],
-                ],
-                [
-                    'title' => 'Suivi & monitoring terrain',
-                    'desc'  => 'Visites régulières, observations terrain et rapports techniques pour garantir la performance de vos exploitations.',
-                    'items' => ['Visites agronomiques périodiques', 'Photos & rapports terrain', 'Alertes et recommandations', 'Bilan de campagne'],
-                ],
-                [
-                    'title' => 'Gestion post-récolte',
-                    'desc'  => 'Techniques de conservation, transformation et mise en marché pour maximiser la valeur de votre production.',
-                    'items' => ['Techniques de séchage', 'Stockage & conservation', 'Transformation locale', 'Accès aux marchés'],
-                ],
-                [
-                    'title' => 'Business development',
-                    'desc'  => 'Développement commercial, mise en relation avec des partenaires, investisseurs et acheteurs potentiels.',
-                    'items' => ['Mise en réseau', 'Recherche de partenaires', 'Développement export', 'Accès investisseurs'],
-                ],
+                ['Agriculture', 'Accompagnement agricole', 'Diagnostic de parcelle, conseils agronomiques, itinéraires techniques et suivi des cultures.', ['Diagnostic terrain', 'Plan cultural', 'Suivi technique', 'Recommandations']],
+                ['Aquaculture', 'Développement piscicole', 'Conception de sites d’élevage, assistance technique, gestion de l’eau et performance des systèmes.', ['Choix du site', 'Dimensionnement', 'Pilotage eau', 'Optimisation rendement']],
+                ['Études techniques', 'Études de faisabilité', 'Pré-études, chiffrage, scénarios d’investissement et analyse de rentabilité.', ['Faisabilité', 'Budget prévisionnel', 'Risques', 'Feuille de route']],
             ] as $service)
-                <div class="bg-cream rounded-2xl p-7 border border-gray-100 card-hover">
-                    <h3 class="font-bold text-dark text-lg mb-3">{{ $service['title'] }}</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed mb-5">{{ $service['desc'] }}</p>
-                    <ul class="space-y-2">
-                        @foreach($service['items'] as $item)
-                            <li class="flex items-center gap-2 text-sm text-gray-600">
-                                <svg class="w-4 h-4 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                {{ $item }}
-                            </li>
+                <article class="rounded-3xl border border-gray-100 bg-cream p-8 shadow-sm card-hover">
+                    <p class="text-sm font-bold uppercase tracking-[0.2em] text-gold">{{ $service[0] }}</p>
+                    <h2 class="mt-3 text-2xl font-bold text-dark">{{ $service[1] }}</h2>
+                    <p class="mt-4 text-gray-600 leading-7">{{ $service[2] }}</p>
+                    <ul class="mt-6 space-y-3">
+                        @foreach($service[3] as $item)
+                            <li class="flex items-center gap-3 text-sm font-medium text-dark"><span class="h-2 w-2 rounded-full bg-gold"></span>{{ $item }}</li>
                         @endforeach
                     </ul>
-                </div>
+                </article>
             @endforeach
         </div>
     </div>
 </section>
 
-{{-- Services Aquaculture --}}
-<section class="py-24 bg-cream">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center gap-4 mb-12">
-            <div class="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                <span class="text-3xl">🐟</span>
-            </div>
+<section class="bg-cream py-20 lg:py-24">
+    <div class="max-w-content mx-auto px-4 lg:px-8">
+        <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <div>
-                <span class="text-blue-600 font-semibold text-sm uppercase tracking-wider">Pôle 2</span>
-                <h2 class="text-3xl font-bold text-dark">Aquaculture & Pisciculture</h2>
+                <p class="text-sm font-bold uppercase tracking-[0.24em] text-gold">Notre méthode</p>
+                <h2 class="mt-3 text-3xl font-extrabold text-dark lg:text-5xl">Simple, structurée, utile.</h2>
+                <p class="mt-5 text-lg leading-8 text-gray-600">Nous partons du besoin, clarifions les options, puis livrons un plan d’action adapté à votre contexte et à votre budget.</p>
             </div>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-8 mb-12">
-            <div class="bg-white rounded-2xl p-8 border border-gray-100 card-hover">
-                <h3 class="font-bold text-dark text-xl mb-4">Création & aménagement de sites</h3>
-                <p class="text-gray-500 leading-relaxed mb-5">
-                    De la sélection du site à la construction des bassins, nous accompagnons chaque étape de la création de votre ferme piscicole.
-                </p>
-                <div class="grid grid-cols-2 gap-3">
-                    @foreach(['Étude de site', 'Conception des bassins', 'Choix des espèces', 'Mise en eau & alevinage'] as $item)
-                        <div class="flex items-center gap-2 text-sm text-gray-600">
-                            <div class="w-2 h-2 bg-blue-400 rounded-full shrink-0"></div>
-                            {{ $item }}
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl p-8 border border-gray-100 card-hover">
-                <h3 class="font-bold text-dark text-xl mb-4">Suivi technique & sanitaire</h3>
-                <p class="text-gray-500 leading-relaxed mb-5">
-                    Surveillance de la qualité de l'eau, gestion sanitaire des élevages et optimisation des ratios alimentaires pour des productions rentables.
-                </p>
-                <div class="grid grid-cols-2 gap-3">
-                    @foreach(['Qualité de l\'eau', 'Gestion sanitaire', 'Plans d\'alimentation', 'Prévention maladies'] as $item)
-                        <div class="flex items-center gap-2 text-sm text-gray-600">
-                            <div class="w-2 h-2 bg-blue-400 rounded-full shrink-0"></div>
-                            {{ $item }}
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl p-8 border border-gray-100 card-hover">
-                <h3 class="font-bold text-dark text-xl mb-4">Transformation & commercialisation</h3>
-                <p class="text-gray-500 leading-relaxed mb-5">
-                    Optimisation de la chaîne de valeur post-récolte : fumage, congélation, emballage et mise en marché de vos produits aquatiques.
-                </p>
-                <div class="grid grid-cols-2 gap-3">
-                    @foreach(['Techniques de fumage', 'Chaîne du froid', 'Emballage & packaging', 'Accès marchés locaux'] as $item)
-                        <div class="flex items-center gap-2 text-sm text-gray-600">
-                            <div class="w-2 h-2 bg-blue-400 rounded-full shrink-0"></div>
-                            {{ $item }}
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl p-8 border border-gray-100 card-hover">
-                <h3 class="font-bold text-dark text-xl mb-4">Formation spécialisée</h3>
-                <p class="text-gray-500 leading-relaxed mb-5">
-                    Programmes de formation adaptés aux aquaculteurs, du débutant à l'exploitant professionnel, en présentiel ou en ligne.
-                </p>
-                <div class="grid grid-cols-2 gap-3">
-                    @foreach(['Bases de pisciculture', 'Gestion d\'élevage', 'Nutrition des poissons', 'Business aquacole'] as $item)
-                        <div class="flex items-center gap-2 text-sm text-gray-600">
-                            <div class="w-2 h-2 bg-blue-400 rounded-full shrink-0"></div>
-                            {{ $item }}
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-{{-- Process --}}
-<section class="py-24 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-            <span class="text-primary font-semibold text-sm uppercase tracking-wider">Comment ça marche</span>
-            <h2 class="text-3xl sm:text-4xl font-bold text-dark mt-2">Notre processus en 4 étapes</h2>
-        </div>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            @foreach([
-                ['01', 'Prise de contact', 'Remplissez notre formulaire ou appelez-nous. Un expert vous contacte sous 24h.'],
-                ['02', 'Diagnostic', 'Analyse de votre situation, vos besoins et vos objectifs pour construire une offre sur mesure.'],
-                ['03', 'Accompagnement', 'Déploiement du plan d\'action avec suivi régulier via votre espace client personnel.'],
-                ['04', 'Résultats', 'Évaluation des résultats, ajustements et rapport de clôture avec recommandations futures.'],
-            ] as $step)
-                <div class="text-center">
-                    <div class="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-5">
-                        <span class="text-2xl font-extrabold text-white">{{ $step[0] }}</span>
+            <div class="grid gap-4 sm:grid-cols-2">
+                @foreach([
+                    ['01', 'Prise de contact', 'Compréhension rapide du besoin.'],
+                    ['02', 'Diagnostic', 'Analyse terrain et contraintes.'],
+                    ['03', 'Préconisations', 'Livrable et feuille de route.'],
+                    ['04', 'Suivi', 'Ajustements et accompagnement.'],
+                ] as $step)
+                    <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+                        <div class="text-sm font-bold uppercase tracking-[0.2em] text-gold">{{ $step[0] }}</div>
+                        <div class="mt-3 text-xl font-bold text-dark">{{ $step[1] }}</div>
+                        <p class="mt-3 text-sm leading-7 text-gray-500">{{ $step[2] }}</p>
                     </div>
-                    <h3 class="font-bold text-dark text-lg mb-2">{{ $step[1] }}</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed">{{ $step[2] }}</p>
-                </div>
-            @endforeach
+                @endforeach
+            </div>
         </div>
     </div>
 </section>
 
-<x-cta-banner
-    title="Besoin d'un accompagnement personnalisé ?"
-    subtitle="Contactez-nous pour une analyse gratuite de votre projet agricole ou aquacole."
-    btnLabel="Demander un devis gratuit"
-    btnRoute="contact"
-/>
-
+<section class="bg-white py-20 lg:py-24 text-center">
+    <div class="max-w-content mx-auto px-4 lg:px-8">
+        <h2 class="text-3xl font-extrabold text-dark lg:text-5xl">Besoin d’un cadrage rapide ?</h2>
+        <p class="mx-auto mt-5 max-w-2xl text-lg leading-8 text-gray-600">Décrivez votre projet et nous vous orienterons vers la bonne prestation.</p>
+        <a href="{{ route('contact') }}" class="mt-8 inline-flex items-center justify-center rounded-xl bg-primary-dark px-7 py-4 font-bold text-white transition hover:bg-primary">Contacter AgriFish</a>
+    </div>
+</section>
 @endsection

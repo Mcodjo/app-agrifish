@@ -1,66 +1,41 @@
 @extends('layouts.app')
 
-@section('title', 'À propos')
-@section('meta_description', 'Notre mission : digitaliser l\'accompagnement agricole en Afrique. Découvrez l\'équipe, les valeurs et l\'histoire d\'AgriFish.')
+@section('title', $seo['title'])
+@section('meta_description', $seo['description'])
+@section('og_title', $seo['title'])
+@section('og_description', $seo['description'])
+@section('og_url', $seo['url'])
 
 @section('content')
+<section class="relative overflow-hidden bg-primary-dark text-white">
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 36px 36px;"></div>
+    <div class="max-w-content mx-auto px-4 lg:px-8 pt-20 pb-20 lg:pt-28 lg:pb-24 relative z-10">
+        <div class="max-w-3xl">
+            <p class="text-sm font-bold uppercase tracking-[0.24em] text-gold-light">À propos</p>
+            <h1 class="mt-4 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-7xl">Une équipe de terrain, une culture du résultat.</h1>
+            <p class="mt-6 text-lg leading-8 text-white/78 lg:text-xl">AgriFish aide les porteurs de projets, coopératives et partenaires à structurer des missions agricoles et aquacoles avec méthode.</p>
+        </div>
+    </div>
+</section>
 
-{{-- Hero --}}
-<x-hero-inner
-    badge="Notre histoire"
-    title="À propos d'<span class='text-gold-light'>AgriFish</span>"
-    subtitle="Une vision née du terrain, portée par la technologie, au service de l'agriculture africaine."
-/>
-
-{{-- Mission & Vision --}}
-<section class="py-24 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-16 items-center">
+<section class="bg-white py-20 lg:py-24">
+    <div class="max-w-content mx-auto px-4 lg:px-8">
+        <div class="grid gap-12 lg:grid-cols-[1fr_1fr] lg:items-start">
             <div>
-                <span class="text-primary font-semibold text-sm uppercase tracking-wider">Notre raison d'être</span>
-                <h2 class="text-3xl sm:text-4xl font-bold text-dark mt-2 mb-6">
-                    Transformer l'agriculture africaine par le <span class="text-primary">numérique</span>
-                </h2>
-                <p class="text-gray-500 leading-relaxed mb-5">
-                    AgriFish est née d'un constat simple : les producteurs, coopératives et investisseurs agricoles africains manquent d'outils digitaux adaptés à leurs réalités terrain. Les solutions existantes sont soit trop complexes, soit inadaptées aux infrastructures locales.
-                </p>
-                <p class="text-gray-500 leading-relaxed mb-8">
-                    Notre mission est de combler ce fossé en proposant une plateforme professionnelle, accessible et efficace, qui structure, accompagne et accélère le développement de l'agriculture et de l'aquaculture en Afrique.
-                </p>
-                <div class="grid sm:grid-cols-2 gap-5">
-                    @foreach([
-                        ['🎯', 'Notre mission', 'Digitaliser l\'accompagnement agricole et professionnaliser les services ruraux.'],
-                        ['🔭', 'Notre vision', 'Devenir la plateforme de référence pour l\'agriculture moderne en Afrique.'],
-                    ] as $mv)
-                        <div class="bg-cream rounded-xl p-5 border border-gray-100">
-                            <p class="text-2xl mb-2">{{ $mv[0] }}</p>
-                            <p class="font-bold text-dark mb-1">{{ $mv[1] }}</p>
-                            <p class="text-gray-500 text-sm">{{ $mv[2] }}</p>
-                        </div>
-                    @endforeach
-                </div>
+                <p class="text-sm font-bold uppercase tracking-[0.24em] text-gold">Notre mission</p>
+                <h2 class="mt-3 text-3xl font-extrabold text-dark lg:text-5xl">Structurer des projets utiles, lisibles et rentables.</h2>
+                <p class="mt-5 text-lg leading-8 text-gray-600">Nous apportons un accompagnement clair, mobile et documenté pour aider nos clients à mieux décider et à mieux exécuter.</p>
             </div>
-
-            <div class="space-y-4">
+            <div class="grid gap-4 sm:grid-cols-2">
                 @foreach([
-                    ['2022', 'Naissance du concept', 'Face aux besoins non couverts sur le terrain, l\'idée d\'AgriFish prend forme après plusieurs années d\'expérience en conseil agricole.'],
-                    ['2023', 'Développement de la plateforme', 'Premier prototype développé avec des tests utilisateurs auprès de coopératives agricoles en Côte d\'Ivoire.'],
-                    ['2024', 'Lancement officiel', 'AgriFish est officiellement lancée et accueille ses premiers clients. Premiers projets accompagnés avec succès.'],
-                    ['2025', 'Expansion régionale', 'Extension du service à 12 pays africains. Intégration des paiements mobiles locaux et lancement du pôle formation.'],
-                ] as $i => $step)
-                    <div class="flex items-start gap-5">
-                        <div class="flex flex-col items-center">
-                            <div class="w-12 h-12 rounded-full {{ $i % 2 === 0 ? 'bg-primary' : 'bg-gold' }} flex items-center justify-center shrink-0">
-                                <span class="text-white font-bold text-xs">{{ $step[0] }}</span>
-                            </div>
-                            @if(!$loop->last)
-                                <div class="w-0.5 h-8 bg-gray-200 mt-2"></div>
-                            @endif
-                        </div>
-                        <div class="pb-6">
-                            <p class="font-bold text-dark">{{ $step[1] }}</p>
-                            <p class="text-gray-500 text-sm mt-1 leading-relaxed">{{ $step[2] }}</p>
-                        </div>
+                    ['Vision', 'Devenir une référence régionale pour l’accompagnement agricole et aquacole.'],
+                    ['Mission', 'Apporter des services techniques fiables et accessibles.'],
+                    ['Approche', 'Écoute, diagnostic, méthode et suivi.'],
+                    ['Promesse', 'Des livrables simples, utiles et actionnables.'],
+                ] as $card)
+                    <div class="rounded-3xl bg-cream p-6 ring-1 ring-gray-100">
+                        <div class="text-lg font-bold text-dark">{{ $card[0] }}</div>
+                        <p class="mt-3 text-sm leading-7 text-gray-600">{{ $card[1] }}</p>
                     </div>
                 @endforeach
             </div>
@@ -68,63 +43,35 @@
     </div>
 </section>
 
-{{-- Valeurs --}}
-<section class="py-24 bg-cream">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-            <span class="text-primary font-semibold text-sm uppercase tracking-wider">Ce qui nous guide</span>
-            <h2 class="text-3xl sm:text-4xl font-bold text-dark mt-2">Nos valeurs fondamentales</h2>
+<section class="bg-cream py-20 lg:py-24">
+    <div class="max-w-content mx-auto px-4 lg:px-8">
+        <div class="mb-10">
+            <p class="text-sm font-bold uppercase tracking-[0.24em] text-gold">Équipe</p>
+            <h2 class="mt-3 text-3xl font-extrabold text-dark lg:text-5xl">Les personnes derrière AgriFish</h2>
         </div>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             @foreach([
-                ['🤝', 'Proximité',     'Nous sommes présents là où nos clients ont besoin de nous, sur le terrain et en ligne.'],
-                ['💡', 'Innovation',    'Nous adoptons les meilleures technologies au service des réalités africaines.'],
-                ['🏆', 'Excellence',    'Chaque conseil, chaque formation, chaque projet est livré avec le plus haut niveau de qualité.'],
-                ['🌍', 'Impact',        'Notre succès se mesure à l\'impact positif sur les revenus et conditions de vie des producteurs.'],
-            ] as $val)
-                <div class="bg-white rounded-2xl p-7 border border-gray-100 card-hover text-center">
-                    <p class="text-4xl mb-4">{{ $val[0] }}</p>
-                    <h3 class="font-bold text-dark text-lg mb-2">{{ $val[1] }}</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed">{{ $val[2] }}</p>
-                </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-
-{{-- Équipe --}}
-<section class="py-24 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-            <span class="text-primary font-semibold text-sm uppercase tracking-wider">Les personnes derrière AgriFish</span>
-            <h2 class="text-3xl sm:text-4xl font-bold text-dark mt-2">Notre équipe d'experts</h2>
-            <p class="text-gray-500 mt-4 max-w-xl mx-auto">Des agronomes, ingénieurs, formateurs et experts numériques réunis autour d'une même vision.</p>
-        </div>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            @foreach([
-                ['Kofi Asante',      'Fondateur & DG',                '12 ans d\'expérience en agronomie tropicale'],
-                ['Aminata Diallo',   'Directrice technique',           'Ingénieure en systèmes d\'information agricoles'],
-                ['Jean-Pierre Bah',  'Responsable formation',          'Expert en pédagogie digitale et aquaculture'],
-                ['Fatou Coulibaly',  'Responsable clientèle',          'Spécialiste accompagnement coopératives'],
+                ['Aminata Traoré', 'Direction générale', 'Coordination des missions et relation partenaires.'],
+                ['Moussa Koné', 'Agronomie', 'Diagnostic terrain et accompagnement des exploitations.'],
+                ['Awa Diallo', 'Aquaculture', 'Conception des unités piscicoles et suivi technique.'],
+                ['Jean Paul N’Guessan', 'Études & données', 'Analyses, reporting et structuration des livrables.'],
             ] as $member)
-                <div class="text-center card-hover">
-                    <div class="w-24 h-24 rounded-full bg-gradient-to-br from-primary-100 to-primary-light mx-auto mb-4 flex items-center justify-center">
-                        <span class="text-3xl font-bold text-white">{{ substr($member[0], 0, 1) }}</span>
-                    </div>
-                    <h3 class="font-bold text-dark">{{ $member[0] }}</h3>
-                    <p class="text-primary text-sm font-medium mt-0.5">{{ $member[1] }}</p>
-                    <p class="text-gray-400 text-sm mt-2">{{ $member[2] }}</p>
-                </div>
+                <article class="rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-gray-100 card-hover">
+                    <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-primary-dark to-primary text-2xl font-extrabold text-white">{{ mb_substr($member[0], 0, 1) }}</div>
+                    <h3 class="mt-4 text-xl font-bold text-dark">{{ $member[0] }}</h3>
+                    <p class="mt-1 text-sm font-semibold text-primary">{{ $member[1] }}</p>
+                    <p class="mt-3 text-sm leading-7 text-gray-500">{{ $member[2] }}</p>
+                </article>
             @endforeach
         </div>
     </div>
 </section>
 
-<x-cta-banner
-    title="Travaillons ensemble"
-    subtitle="Que vous soyez producteur, investisseur ou coopérative, AgriFish a une solution pour vous."
-    btnLabel="Prendre contact"
-    btnRoute="contact"
-/>
-
+<section class="bg-white py-20 lg:py-24 text-center">
+    <div class="max-w-content mx-auto px-4 lg:px-8">
+        <h2 class="text-3xl font-extrabold text-dark lg:text-5xl">Travaillons ensemble</h2>
+        <p class="mx-auto mt-5 max-w-2xl text-lg leading-8 text-gray-600">Que vous soyez producteur, investisseur ou coopérative, AgriFish peut vous aider à structurer votre prochaine étape.</p>
+        <a href="{{ route('contact') }}" class="mt-8 inline-flex items-center justify-center rounded-xl bg-primary-dark px-7 py-4 font-bold text-white transition hover:bg-primary">Prendre contact</a>
+    </div>
+</section>
 @endsection

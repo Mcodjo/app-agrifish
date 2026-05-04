@@ -1,46 +1,31 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+@layer base {
+	html {
+		scroll-behavior: smooth;
+	}
 
-@theme {
-    --font-sans: 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+	body {
+		@apply bg-white text-dark antialiased;
+	}
 
-    --color-primary:        #2D6A4F;
-    --color-primary-light:  #52B788;
-    --color-primary-dark:   #1B4332;
-    --color-primary-50:     #eaf4ef;
-    --color-primary-100:    #c8e6d7;
-
-    --color-gold:           #C9952A;
-    --color-gold-light:     #F4C542;
-    --color-gold-dark:      #9B7017;
-
-    --color-cream:          #F8F6F0;
-    --color-dark:           #1A2E1A;
+	::selection {
+		@apply bg-gold text-white;
+	}
 }
 
-/* Evite le flash Alpine.js avant initialisation */
-[x-cloak] { display: none !important; }
+@layer utilities {
+	.max-w-content {
+		@apply mx-auto max-w-7xl;
+	}
 
-/* Smooth scroll */
-html { scroll-behavior: smooth; }
+	.hero-gradient {
+		@apply bg-gradient-to-br from-primary-dark via-primary to-primary-light;
+	}
 
-/* Transitions globales */
-a, button { transition: all 0.2s ease-in-out; }
-
-/* Gradient hero */
-.hero-gradient {
-    background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 50%, #52B788 100%);
-}
-
-/* Card hover */
-.card-hover {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(29,67,50,0.15);
+	.card-hover {
+		@apply transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl;
+	}
 }
