@@ -12,12 +12,27 @@ use Illuminate\Validation\Rule;
 
 class ServiceRequestController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $status = $request->query('statut');
+        $status = array_key_exists((string) $status, ServiceRequest::STATUSES) ? $status : null;
+        $search = trim((string) $request->query('q', ''));
+
         $requests = ServiceRequest::query()
             ->with(['client', 'assignedExpert'])
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('reference', 'like', "%{$search}%")
+                        ->orWhere('title', 'like', "%{$search}%")
+                        ->orWhereHas('client', fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+                });
+            })
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
+
+        $counts = ServiceRequest::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
 
         $experts = User::query()
             ->where('role', 'expert')
@@ -28,6 +43,9 @@ class ServiceRequestController extends Controller
             'requests' => $requests,
             'experts' => $experts,
             'statuses' => ServiceRequest::STATUSES,
+            'counts' => $counts,
+            'currentStatus' => $status,
+            'search' => $search,
         ]);
     }
 

@@ -7,86 +7,126 @@
 @section('og_url', $seo['url'])
 
 @section('content')
-<section class="relative overflow-hidden bg-primary-dark text-white">
-    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 36px 36px;"></div>
-    <div class="max-w-content mx-auto px-4 lg:px-8 pt-20 pb-20 lg:pt-28 lg:pb-24 relative z-10">
-        <div class="max-w-3xl">
-            <p class="text-sm font-bold uppercase tracking-[0.24em] text-gold-light">Demande de service</p>
-            <h1 class="mt-4 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-7xl">Déposez votre demande avec vos documents.</h1>
-            <p class="mt-6 text-lg leading-8 text-white/78 lg:text-xl">Ajoutez des pièces jointes pour accélérer l’analyse: nous vous répondrons depuis votre espace client.</p>
-        </div>
-    </div>
-</section>
+<x-app-header :back="route('dashboard')" back-label="Tableau de bord" eyebrow="Nouvelle demande"
+              title="Décrivez votre projet"
+              subtitle="Quelques minutes suffisent. Un expert AgriFish analyse votre demande et vous répond dans votre espace." />
 
-<section class="bg-cream py-20 lg:py-24">
-    <div class="max-w-content mx-auto px-4 lg:px-8">
-        <div class="grid gap-10 lg:grid-cols-[0.95fr_1.05fr]">
-            <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-                <h2 class="text-2xl font-bold text-dark">Votre compte</h2>
-                <p class="mt-3 text-sm leading-7 text-gray-600">Les demandes sont rattachées à votre profil. Vous pourrez ensuite suivre le statut dans le tableau de bord.</p>
-                <div class="mt-6 space-y-3 text-sm text-gray-600">
-                    <p><strong class="text-dark">Nom</strong><br>{{ $user->name }}</p>
-                    <p><strong class="text-dark">Email</strong><br>{{ $user->email }}</p>
-                    <p><strong class="text-dark">Téléphone</strong><br>{{ $user->phone ?? 'Non renseigné' }}</p>
+<section class="bg-cream py-10 lg:py-14">
+    <div class="max-w-content grid items-start gap-6 px-4 lg:grid-cols-[1fr_20rem] lg:px-8">
+        <form action="{{ route('requests.store') }}" method="POST" enctype="multipart/form-data"
+              x-data="{ sending: false, desc: @js(old('description', '')) }" @submit="sending = true"
+              class="card space-y-8 sm:!p-8" novalidate>
+
+            @if($errors->any())
+                <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert">
+                    <p class="font-semibold">Certains champs sont à corriger.</p>
                 </div>
+            @endif
+
+            {{-- Étape 1 --}}
+            <fieldset>
+                @csrf
+                <legend class="flex items-center gap-3 text-base font-bold text-dark">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs text-white">1</span>
+                    Type d’accompagnement
+                </legend>
+                <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                    @foreach($serviceTypes as $value => $label)
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="service_type" value="{{ $value }}" class="peer sr-only" @checked(old('service_type') === $value) required>
+                            <span class="flex h-full items-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition peer-checked:border-primary peer-checked:bg-primary-50 peer-checked:text-primary-dark peer-focus-visible:ring-2 peer-focus-visible:ring-gold hover:border-primary-300">
+                                {{ $label }}
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('service_type')<p class="field-error">Choisissez un type d’accompagnement.</p>@enderror
+            </fieldset>
+
+            {{-- Étape 2 --}}
+            <fieldset class="space-y-5">
+                <legend class="flex items-center gap-3 text-base font-bold text-dark">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs text-white">2</span>
+                    Votre besoin
+                </legend>
+                <div>
+                    <label for="title" class="field-label">Titre de la demande *</label>
+                    <input id="title" name="title" type="text" required maxlength="150" value="{{ old('title') }}"
+                           class="field-input @error('title') border-red-400 @enderror" placeholder="Ex : Diagnostic d’une parcelle de 5 hectares">
+                    @error('title')<p class="field-error">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <div class="flex items-end justify-between">
+                        <label for="description" class="field-label">Description *</label>
+                        <span class="mb-1.5 text-xs" :class="desc.length < 20 ? 'text-gray-400' : 'text-primary'" x-text="desc.length + ' / 5000'"></span>
+                    </div>
+                    <textarea id="description" name="description" rows="7" required minlength="20" maxlength="5000" x-model="desc"
+                              class="field-input @error('description') border-red-400 @enderror"
+                              placeholder="Contexte (lieu, surface, espèces…), objectifs, contraintes et délais souhaités."></textarea>
+                    <p class="mt-1.5 text-xs text-gray-500" x-show="desc.length < 20">20 caractères minimum.</p>
+                    @error('description')<p class="field-error">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <span class="field-label">Priorité *</span>
+                    <div class="grid grid-cols-3 gap-2">
+                        @foreach(['low' => 'Faible', 'normal' => 'Normale', 'high' => 'Urgente'] as $value => $label)
+                            <label class="cursor-pointer">
+                                <input type="radio" name="priority" value="{{ $value }}" class="peer sr-only" @checked(old('priority', 'normal') === $value)>
+                                <span class="block rounded-xl border-2 border-gray-200 bg-white px-3 py-2.5 text-center text-sm font-semibold text-gray-600 transition peer-checked:border-primary peer-checked:bg-primary-50 peer-checked:text-primary-dark peer-focus-visible:ring-2 peer-focus-visible:ring-gold">{{ $label }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('priority')<p class="field-error">{{ $message }}</p>@enderror
+                </div>
+            </fieldset>
+
+            {{-- Étape 3 --}}
+            <fieldset>
+                <legend class="flex items-center gap-3 text-base font-bold text-dark">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs text-white">3</span>
+                    Documents <span class="text-sm font-normal text-gray-500">(facultatif)</span>
+                </legend>
+                <p class="mt-2 text-sm text-gray-500">Plans, photos, analyses de sol ou d’eau, devis… tout ce qui aide l’expert à comprendre votre projet.</p>
+                <div class="mt-4">
+                    <x-file-input name="documents[]" id="documents" multiple hint="Jusqu’à 10 fichiers · PDF, Word, Excel ou image · 5 Mo max" />
+                </div>
+                @error('documents')<p class="field-error">{{ $message }}</p>@enderror
+                @error('documents.*')<p class="field-error">{{ $message }}</p>@enderror
+            </fieldset>
+
+            <div class="flex flex-col-reverse gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                <a href="{{ route('dashboard') }}" class="text-center text-sm font-semibold text-gray-500 hover:text-gray-700">Annuler</a>
+                <button type="submit" class="btn-primary px-7" :disabled="sending">
+                    <svg x-show="sending" x-cloak class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                    <span x-text="sending ? 'Envoi en cours…' : 'Envoyer ma demande'">Envoyer ma demande</span>
+                </button>
             </div>
+        </form>
 
-            <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-100 sm:p-8">
-                <h2 class="text-2xl font-bold text-dark">Nouvelle demande</h2>
-
-                <form action="{{ route('requests.store') }}" method="POST" enctype="multipart/form-data" class="mt-8 space-y-5">
-                    @csrf
-                    <div>
-                        <label for="service_type" class="mb-2 block text-sm font-semibold text-gray-700">Type de service *</label>
-                        <select id="service_type" name="service_type" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                            <option value="">-- Choisissez --</option>
-                            @foreach($serviceTypes as $value => $label)
-                                <option value="{{ $value }}" @selected(old('service_type') === $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="title" class="mb-2 block text-sm font-semibold text-gray-700">Titre de la demande *</label>
-                        <input id="title" name="title" type="text" value="{{ old('title') }}" class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Ex: Diagnostic de parcelle de 5 hectares">
-                    </div>
-
-                    <div>
-                        <label for="description" class="mb-2 block text-sm font-semibold text-gray-700">Description *</label>
-                        <textarea id="description" name="description" rows="7" class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Expliquez le contexte, les objectifs et le besoin...">{{ old('description') }}</textarea>
-                    </div>
-
-                    <div class="grid gap-5 sm:grid-cols-2">
-                        <div>
-                            <label for="priority" class="mb-2 block text-sm font-semibold text-gray-700">Priorité *</label>
-                            <select id="priority" name="priority" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                                <option value="normal" @selected(old('priority', 'normal') === 'normal')>Normale</option>
-                                <option value="low" @selected(old('priority') === 'low')>Faible</option>
-                                <option value="high" @selected(old('priority') === 'high')>Haute</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="documents" class="mb-2 block text-sm font-semibold text-gray-700">Documents</label>
-                            <input id="documents" name="documents[]" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" class="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-primary file:px-4 file:py-3 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-dark">
-                        </div>
-                    </div>
-
-                    @if($errors->any())
-                        <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
-                            <p class="font-semibold">Veuillez corriger les erreurs ci-dessous.</p>
-                            <ul class="mt-2 space-y-1 text-sm">
-                                @foreach($errors->all() as $error)
-                                    <li>• {{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-4 font-bold text-white transition hover:bg-primary-dark">Envoyer la demande</button>
-                </form>
+        <aside class="space-y-4 lg:sticky lg:top-28">
+            <div class="card">
+                <h2 class="font-bold text-dark">Et ensuite ?</h2>
+                <ol class="mt-4 space-y-4 text-sm">
+                    @foreach([
+                        ['Analyse', 'Notre équipe étudie votre demande sous 48 h.'],
+                        ['Assignation', 'Un expert du domaine est désigné pour votre projet.'],
+                        ['Plan d’action', 'Les étapes et livrables apparaissent dans votre espace.'],
+                    ] as $i => [$step, $text])
+                        <li class="flex gap-3">
+                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold/15 text-xs font-bold text-gold-dark">{{ $i + 1 }}</span>
+                            <div><p class="font-semibold text-dark">{{ $step }}</p><p class="text-gray-500">{{ $text }}</p></div>
+                        </li>
+                    @endforeach
+                </ol>
             </div>
-        </div>
+            <div class="card text-sm">
+                <p class="text-xs font-bold uppercase tracking-wider text-gray-400">Demande au nom de</p>
+                <p class="mt-2 font-semibold text-dark">{{ $user->name }}</p>
+                <p class="text-gray-500">{{ $user->email }}</p>
+                <p class="text-gray-500">{{ $user->phone ?? 'Téléphone non renseigné' }}</p>
+                <a href="{{ route('profile.edit') }}" class="mt-3 inline-block font-semibold text-primary">Modifier mes coordonnées</a>
+            </div>
+        </aside>
     </div>
 </section>
 @endsection

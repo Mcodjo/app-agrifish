@@ -14,7 +14,8 @@ class DemoUsersSeeder extends Seeder
 {
     public function run(): void
     {
-        $password = Hash::make(env('DEMO_USER_PASSWORD', 'Password123!'));
+        // « ?: » et non une valeur par défaut d'env() : une variable présente mais vide renvoie "".
+        $password = Hash::make(env('DEMO_USER_PASSWORD') ?: 'Password123!');
 
         $preferences = [
             'service_updates' => true,

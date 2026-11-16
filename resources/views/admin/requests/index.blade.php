@@ -4,99 +4,112 @@
 @section('meta_description', 'Interface admin AgriFish pour suivre, assigner et mettre à jour les demandes des clients.')
 
 @section('content')
-<section class="relative overflow-hidden bg-primary-dark text-white">
-    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 36px 36px;"></div>
-    <div class="max-w-content mx-auto px-4 lg:px-8 pt-20 pb-20 lg:pt-28 lg:pb-24 relative z-10">
-        <div class="max-w-3xl">
-            <p class="text-sm font-bold uppercase tracking-[0.24em] text-gold-light">Admin</p>
-            <h1 class="mt-4 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-7xl">Liste des demandes et assignation.</h1>
-            <p class="mt-6 text-lg leading-8 text-white/78 lg:text-xl">Attribuez une demande à un expert, mettez à jour son statut et gardez un suivi clair.</p>
-        </div>
-    </div>
-</section>
+<x-app-header :back="route('dashboard')" back-label="Tableau de bord" eyebrow="Administration"
+              title="Gestion des demandes"
+              subtitle="Analysez les nouvelles demandes, assignez un expert et tenez le client informé." />
 
-<section class="bg-cream py-20 lg:py-24">
-    <div class="max-w-content mx-auto px-4 lg:px-8 space-y-6">
-        @foreach($requests as $requestItem)
-            <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-                <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
-                    <div>
-                        <div class="flex flex-wrap items-center gap-3">
-                            <h2 class="text-2xl font-extrabold text-dark">{{ $requestItem->reference }}</h2>
-                            <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-primary">{{ $requestItem->statusLabel() }}</span>
-                            <a href="{{ route('projects.show', $requestItem) }}" class="text-sm font-semibold text-primary hover:text-primary-dark">Voir le projet →</a>
-                        </div>
-                        <p class="mt-2 text-sm text-gray-500">Client: {{ $requestItem->client?->name }} - {{ $requestItem->client?->email }}</p>
-                        <p class="mt-4 text-lg font-bold text-dark">{{ $requestItem->title }}</p>
-                        <p class="mt-3 text-gray-600 leading-7">{{ $requestItem->description }}</p>
+<section class="bg-cream py-10 lg:py-14">
+    <div class="max-w-content space-y-5 px-4 lg:px-8">
 
-                        <div class="mt-5 grid gap-4 sm:grid-cols-3 text-sm">
-                            <div class="rounded-2xl bg-cream p-4">
-                                <div class="font-bold text-dark">Service</div>
-                                <div class="mt-1 text-gray-600">{{ $requestItem->service_type }}</div>
-                            </div>
-                            <div class="rounded-2xl bg-cream p-4">
-                                <div class="font-bold text-dark">Priorité</div>
-                                <div class="mt-1 text-gray-600">{{ $requestItem->priority }}</div>
-                            </div>
-                            <div class="rounded-2xl bg-cream p-4">
-                                <div class="font-bold text-dark">Expert</div>
-                                <div class="mt-1 text-gray-600">{{ $requestItem->assignedExpert?->name ?? 'Non assigné' }}</div>
-                            </div>
-                        </div>
-
-                        @if(! empty($requestItem->document_paths))
-                            <div class="mt-5">
-                                <div class="text-sm font-bold uppercase tracking-[0.18em] text-gold">Documents</div>
-                                <div class="mt-3 flex flex-wrap gap-3">
-                                    @foreach($requestItem->document_paths as $index => $path)
-                                        <a href="{{ route('projects.documents.download', [$requestItem, $index]) }}" class="rounded-xl border border-gray-200 px-4 py-2 text-sm text-primary hover:bg-primary hover:text-white">Document {{ $index + 1 }}</a>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-
-                    <form method="POST" action="{{ route('admin.requests.update', $requestItem) }}" class="rounded-3xl bg-cream p-5 space-y-4">
-                        @csrf
-                        @method('PATCH')
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-gray-700" for="status-{{ $requestItem->id }}">Statut</label>
-                            <select id="status-{{ $requestItem->id }}" name="status" class="w-full rounded-xl border-gray-200 bg-white px-4 py-3 text-sm focus:border-primary focus:ring-primary">
-                                @foreach($statuses as $value => $label)
-                                    <option value="{{ $value }}" @selected($requestItem->status === $value)>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-gray-700" for="expert-{{ $requestItem->id }}">Expert</label>
-                            <select id="expert-{{ $requestItem->id }}" name="assigned_expert_id" class="w-full rounded-xl border-gray-200 bg-white px-4 py-3 text-sm focus:border-primary focus:ring-primary">
-                                <option value="">-- Non assigné --</option>
-                                @foreach($experts as $expert)
-                                    <option value="{{ $expert->id }}" @selected((string) $requestItem->assigned_expert_id === (string) $expert->id)>{{ $expert->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-gray-700" for="notes-{{ $requestItem->id }}">Note de statut</label>
-                            <textarea id="notes-{{ $requestItem->id }}" name="status_notes" rows="4" class="w-full rounded-xl border-gray-200 bg-white px-4 py-3 text-sm focus:border-primary focus:ring-primary">{{ $requestItem->status_notes }}</textarea>
-                        </div>
-
-                        @if(session('status') === 'request-updated')
-                            <div class="rounded-2xl border border-green-200 bg-green-50 p-3 text-sm font-medium text-green-700">Demande mise à jour.</div>
-                        @endif
-
-                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-primary px-5 py-3 font-bold text-white hover:bg-primary-dark">Enregistrer</button>
-                    </form>
+        {{-- Filtres --}}
+        <div class="card !p-4">
+            <form method="GET" action="{{ route('admin.requests.index') }}" class="flex flex-col gap-3 sm:flex-row">
+                @if($currentStatus)<input type="hidden" name="statut" value="{{ $currentStatus }}">@endif
+                <label for="q" class="sr-only">Rechercher</label>
+                <div class="relative flex-1">
+                    <svg class="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input id="q" type="search" name="q" value="{{ $search }}" placeholder="Référence, titre, nom ou e-mail du client…" class="field-input pl-11">
                 </div>
-            </div>
-        @endforeach
+                <button type="submit" class="btn-primary">Rechercher</button>
+            </form>
+            <nav class="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Filtrer par statut">
+                @php $tabs = ['' => ['Toutes', $counts->sum()]] + collect($statuses)->map(fn ($label, $key) => [$label, $counts[$key] ?? 0])->all(); @endphp
+                @foreach($tabs as $key => [$label, $count])
+                    @php $active = (string) $currentStatus === (string) $key; @endphp
+                    <a href="{{ route('admin.requests.index', array_filter(['statut' => $key, 'q' => $search])) }}"
+                       class="inline-flex shrink-0 items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold transition {{ $active ? 'bg-primary text-white' : 'bg-cream text-gray-600 hover:bg-primary-50 hover:text-primary' }}">
+                        {{ $label }}
+                        <span class="rounded-full px-1.5 text-xs {{ $active ? 'bg-white/20' : 'bg-white text-gray-500' }}">{{ $count }}</span>
+                    </a>
+                @endforeach
+            </nav>
+        </div>
 
-        @if($requests->isEmpty())
-            <p class="text-center text-gray-500">Aucune demande pour le moment.</p>
-        @endif
+        @forelse($requests as $requestItem)
+            <article class="card" x-data="{ edit: false }">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-gray-400">{{ $requestItem->reference }}</span>
+                            <x-status-badge :status="$requestItem->status" />
+                            @if($requestItem->priority === 'high')
+                                <span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-200">Urgente</span>
+                            @endif
+                        </div>
+                        <h2 class="mt-1.5 text-lg font-bold text-dark">
+                            <a href="{{ route('projects.show', $requestItem) }}" class="hover:text-primary">{{ $requestItem->title }}</a>
+                        </h2>
+                        <p class="mt-1 line-clamp-2 text-sm text-gray-600">{{ $requestItem->description }}</p>
+                        <div class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-gray-500">
+                            <span><span class="font-semibold text-gray-700">{{ $requestItem->client?->name }}</span> · {{ $requestItem->client?->email }}</span>
+                            <span>{{ \App\Models\ServiceRequest::SERVICE_TYPES[$requestItem->service_type] ?? $requestItem->service_type }}</span>
+                            <span>Reçue le {{ $requestItem->created_at->format('d/m/Y') }}</span>
+                            <span>{{ count($requestItem->document_paths ?? []) }} document(s)</span>
+                        </div>
+                    </div>
+                    <div class="flex shrink-0 items-center gap-3 lg:flex-col lg:items-end">
+                        <div class="text-sm">
+                            <span class="text-gray-500">Expert :</span>
+                            <span class="font-semibold {{ $requestItem->assignedExpert ? 'text-dark' : 'text-amber-700' }}">{{ $requestItem->assignedExpert?->name ?? 'Non assigné' }}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ route('projects.show', $requestItem) }}" class="btn-outline !py-2">Ouvrir</a>
+                            <button type="button" @click="edit = !edit" class="btn-primary !py-2" x-text="edit ? 'Fermer' : 'Traiter'">Traiter</button>
+                        </div>
+                    </div>
+                </div>
+
+                <form x-show="edit" x-cloak x-transition method="POST" action="{{ route('admin.requests.update', $requestItem) }}"
+                      class="mt-5 grid gap-4 rounded-xl bg-cream p-4 sm:grid-cols-2">
+                    @csrf
+                    @method('PATCH')
+                    <div>
+                        <label class="field-label" for="status-{{ $requestItem->id }}">Statut</label>
+                        <select id="status-{{ $requestItem->id }}" name="status" class="field-input">
+                            @foreach($statuses as $value => $label)
+                                <option value="{{ $value }}" @selected($requestItem->status === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="field-label" for="expert-{{ $requestItem->id }}">Expert assigné</label>
+                        <select id="expert-{{ $requestItem->id }}" name="assigned_expert_id" class="field-input">
+                            <option value="">— Non assigné —</option>
+                            @foreach($experts as $expert)
+                                <option value="{{ $expert->id }}" @selected((string) $requestItem->assigned_expert_id === (string) $expert->id)>{{ $expert->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="field-label" for="notes-{{ $requestItem->id }}">Note visible par le client</label>
+                        <textarea id="notes-{{ $requestItem->id }}" name="status_notes" rows="3" maxlength="2000" class="field-input" placeholder="Ex : Nous avons besoin du plan de la parcelle pour avancer.">{{ $requestItem->status_notes }}</textarea>
+                        <p class="mt-1.5 text-xs text-gray-500">Le client reçoit un e-mail si le statut change (selon ses préférences).</p>
+                    </div>
+                    <div class="flex justify-end gap-2 sm:col-span-2">
+                        <button type="button" @click="edit = false" class="btn-outline">Annuler</button>
+                        <button type="submit" class="btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </article>
+        @empty
+            <div class="rounded-2xl border-2 border-dashed border-gray-200 bg-white px-6 py-14 text-center">
+                <h2 class="text-lg font-bold text-dark">Aucune demande trouvée</h2>
+                <p class="mt-2 text-sm text-gray-500">Modifiez la recherche ou le filtre de statut.</p>
+                @if($currentStatus || $search)
+                    <a href="{{ route('admin.requests.index') }}" class="btn-outline mt-5">Réinitialiser les filtres</a>
+                @endif
+            </div>
+        @endforelse
 
         <div>{{ $requests->links() }}</div>
     </div>

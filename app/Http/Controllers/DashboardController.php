@@ -12,7 +12,7 @@ class DashboardController extends Controller
         $user = $request->user();
 
         $query = ServiceRequest::query()
-            ->with(['assignedExpert', 'milestones' => function ($query): void {
+            ->with(['assignedExpert', 'client', 'milestones' => function ($query): void {
                 $query->orderBy('sort_order')->orderBy('id');
             }])
             ->withCount(['milestones', 'messages'])
@@ -34,22 +34,33 @@ class DashboardController extends Controller
             'alerts' => $requests->whereIn('status', ['new', 'reviewing', 'waiting_client'])->count(),
         ];
 
-        $alerts = $requests->take(3)->map(function (ServiceRequest $serviceRequest) {
-            return [
-                'title' => $serviceRequest->reference,
-                'message' => match ($serviceRequest->status) {
-                    'new' => 'Nouvelle demande reçue.',
-                    'reviewing' => 'Demande en cours d’analyse.',
-                    'assigned' => 'Un expert a été assigné.',
-                    'in_progress' => 'Le traitement a démarré.',
-                    'waiting_client' => 'Une réponse du client est attendue.',
-                    'completed' => 'Demande finalisée.',
-                    'closed' => 'Demande clôturée.',
-                    default => 'Mise à jour récente.',
-                },
-            ];
-        });
+        // « Actions requises » : uniquement ce qui demande vraiment une intervention de l'utilisateur.
+        $alerts = $requests->map(function (ServiceRequest $serviceRequest) use ($user) {
+            $blocked = $serviceRequest->milestones->firstWhere('status', 'blocked');
 
-        return view('dashboard', compact('requests', 'stats', 'alerts'));
+            $message = match (true) {
+                $serviceRequest->status === 'waiting_client' => $user->isExpert() || $user->isAdmin()
+                    ? 'En attente d’une réponse du client.'
+                    : 'Votre réponse est attendue pour avancer.',
+                $blocked !== null => 'Jalon bloqué : '.$blocked->title.'.',
+                $user->isAdmin() && $serviceRequest->status === 'new' => 'Nouvelle demande à analyser et assigner.',
+                $user->isExpert() && $serviceRequest->milestones->isEmpty() => 'Aucun jalon défini : planifiez les étapes.',
+                default => null,
+            };
+
+            return $message ? [
+                'reference' => $serviceRequest->reference,
+                'title' => $serviceRequest->title,
+                'message' => $message,
+                'tone' => $blocked && $serviceRequest->status !== 'waiting_client' ? 'red' : 'amber',
+                'url' => route('projects.show', $serviceRequest),
+            ] : null;
+        })->filter()->take(5)->values();
+
+        $stats['alerts'] = $alerts->count();
+
+        $role = $user->isAdmin() ? 'admin' : ($user->isExpert() ? 'expert' : 'client');
+
+        return view('dashboard', compact('requests', 'stats', 'alerts', 'role'));
     }
 }
