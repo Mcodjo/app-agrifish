@@ -17,13 +17,6 @@ class ProjectAccessTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->withoutVite();
-    }
-
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();
