@@ -7,15 +7,19 @@
 
 ## 🗂️ Arborescence repensée
 
+> **État réel des routes (`routes/web.php`)** : les URL implémentées sont en français.
+> Les sous-pages `/services/agriculture` et `/services/aquaculture` ne sont **pas encore** créées
+> (tout est sur `/services`). `/etudes-de-cas` redirige vers `/projets`.
+
 ```
 AgriFish
 ├── /                        Accueil
-├── /about                   À propos & Impact
+├── /a-propos                À propos & Impact
 ├── /services                Nos expertises
-│   ├── /services/agriculture      Pôle Agriculture
-│   └── /services/aquaculture      Pôle Aquaculture
-├── /formations              Formations professionnelles
-├── /etudes-de-cas           Études de cas & Références  ← NOUVELLE PAGE
+│   ├── /services/agriculture      Pôle Agriculture   (à créer)
+│   └── /services/aquaculture      Pôle Aquaculture   (à créer)
+├── /formation               Formations professionnelles
+├── /projets                 Études de cas & Références (/etudes-de-cas → redirection)
 ├── /contact                 Prendre contact
 ├── /mentions-legales        Mentions légales
 ├── /politique-confidentialite  Politique de confidentialité
@@ -155,7 +159,7 @@ AgriFish
 
 ---
 
-### 2. À PROPOS & IMPACT — `/about`
+### 2. À PROPOS & IMPACT — `/a-propos`
 
 #### `HeroInner`
 **Badge :** `Notre histoire & nos engagements`
@@ -389,7 +393,7 @@ Logos partenaires en grille (placeholder)
 
 ---
 
-### 4. FORMATIONS PROFESSIONNELLES — `/formations`
+### 4. FORMATIONS PROFESSIONNELLES — `/formation`
 
 #### `HeroFormation` — Dégradé vert profond
 
@@ -496,7 +500,7 @@ Logos partenaires en grille (placeholder)
 
 ---
 
-### 5. ÉTUDES DE CAS — `/etudes-de-cas` ← NOUVELLE PAGE STRATÉGIQUE
+### 5. ÉTUDES DE CAS — `/projets` (ancien `/etudes-de-cas`) ← NOUVELLE PAGE STRATÉGIQUE
 
 > **Objectif :** Rassurer les clients institutionnels (ONG, bailleurs, investisseurs) avec des preuves concrètes de résultats.
 

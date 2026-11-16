@@ -33,7 +33,8 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Les fichiers privés sont servis uniquement par les routes autorisées (ProjectController).
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

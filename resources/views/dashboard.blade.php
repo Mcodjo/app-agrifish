@@ -15,6 +15,9 @@
                 <div class="mt-8 flex flex-col gap-4 sm:flex-row">
                     <a href="{{ route('requests.create') }}" class="inline-flex items-center justify-center rounded-xl bg-gold px-7 py-4 font-bold text-white transition hover:bg-gold-dark">Nouvelle demande</a>
                     <a href="{{ route('profile.edit') }}" class="inline-flex items-center justify-center rounded-xl border border-white/30 px-7 py-4 font-semibold text-white transition hover:bg-white/10">Mon profil</a>
+                    @if(auth()->user()->isAdmin())
+                        <a href="{{ route('admin.requests.index') }}" class="inline-flex items-center justify-center rounded-xl border border-white/30 px-7 py-4 font-semibold text-white transition hover:bg-white/10">Administration</a>
+                    @endif
                 </div>
             </div>
 
@@ -78,15 +81,15 @@
                                     <div class="font-bold text-dark">{{ $requestItem->reference }}</div>
                                     <div class="text-sm text-gray-500">{{ $requestItem->title }}</div>
                                 </td>
-                                <td class="px-4 py-4 text-sm text-gray-600">{{ $requestItem->service_type }}</td>
+                                <td class="px-4 py-4 text-sm text-gray-600">{{ \App\Models\ServiceRequest::SERVICE_TYPES[$requestItem->service_type] ?? $requestItem->service_type }}</td>
                                 <td class="px-4 py-4 text-sm">
-                                    <span class="inline-flex rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary">{{ str_replace('_', ' ', $requestItem->status) }}</span>
+                                    <span class="inline-flex rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary">{{ $requestItem->statusLabel() }}</span>
                                     <div class="mt-2 text-xs text-gray-500">{{ $requestItem->milestones_count }} jalons · {{ $requestItem->messages_count }} messages</div>
                                 </td>
                                 <td class="px-4 py-4 text-sm text-gray-600">
                                     <div>{{ $requestItem->assignedExpert?->name ?? 'Non assigné' }}</div>
                                     @if($requestItem->milestones->isNotEmpty())
-                                        <div class="mt-2 text-xs text-gray-500">Dernier jalon: {{ $requestItem->milestones->last()->title }} ({{ str_replace('_', ' ', $requestItem->milestones->last()->status) }})</div>
+                                        <div class="mt-2 text-xs text-gray-500">Dernier jalon: {{ $requestItem->milestones->last()->title }} ({{ $requestItem->milestones->last()->statusLabel() }})</div>
                                     @endif
                                 </td>
                                 <td class="px-4 py-4 text-sm text-gray-600">

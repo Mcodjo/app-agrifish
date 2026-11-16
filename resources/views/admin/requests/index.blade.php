@@ -23,9 +23,10 @@
                     <div>
                         <div class="flex flex-wrap items-center gap-3">
                             <h2 class="text-2xl font-extrabold text-dark">{{ $requestItem->reference }}</h2>
-                            <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-primary">{{ str_replace('_', ' ', $requestItem->status) }}</span>
+                            <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-primary">{{ $requestItem->statusLabel() }}</span>
+                            <a href="{{ route('projects.show', $requestItem) }}" class="text-sm font-semibold text-primary hover:text-primary-dark">Voir le projet →</a>
                         </div>
-                        <p class="mt-2 text-sm text-gray-500">Client: {{ $requestItem->client->name }} - {{ $requestItem->client->email }}</p>
+                        <p class="mt-2 text-sm text-gray-500">Client: {{ $requestItem->client?->name }} - {{ $requestItem->client?->email }}</p>
                         <p class="mt-4 text-lg font-bold text-dark">{{ $requestItem->title }}</p>
                         <p class="mt-3 text-gray-600 leading-7">{{ $requestItem->description }}</p>
 
@@ -48,8 +49,8 @@
                             <div class="mt-5">
                                 <div class="text-sm font-bold uppercase tracking-[0.18em] text-gold">Documents</div>
                                 <div class="mt-3 flex flex-wrap gap-3">
-                                    @foreach($requestItem->document_paths as $path)
-                                        <a href="{{ asset('storage/'.$path) }}" target="_blank" class="rounded-xl border border-gray-200 px-4 py-2 text-sm text-primary hover:bg-primary hover:text-white">Voir le fichier</a>
+                                    @foreach($requestItem->document_paths as $index => $path)
+                                        <a href="{{ route('projects.documents.download', [$requestItem, $index]) }}" class="rounded-xl border border-gray-200 px-4 py-2 text-sm text-primary hover:bg-primary hover:text-white">Document {{ $index + 1 }}</a>
                                     @endforeach
                                 </div>
                             </div>
@@ -62,15 +63,7 @@
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-gray-700" for="status-{{ $requestItem->id }}">Statut</label>
                             <select id="status-{{ $requestItem->id }}" name="status" class="w-full rounded-xl border-gray-200 bg-white px-4 py-3 text-sm focus:border-primary focus:ring-primary">
-                                @foreach([
-                                    'new' => 'Nouvelle',
-                                    'reviewing' => 'En revue',
-                                    'assigned' => 'Assignée',
-                                    'in_progress' => 'En cours',
-                                    'waiting_client' => 'En attente client',
-                                    'completed' => 'Terminée',
-                                    'closed' => 'Clôturée',
-                                ] as $value => $label)
+                                @foreach($statuses as $value => $label)
                                     <option value="{{ $value }}" @selected($requestItem->status === $value)>{{ $label }}</option>
                                 @endforeach
                             </select>
@@ -100,6 +93,12 @@
                 </div>
             </div>
         @endforeach
+
+        @if($requests->isEmpty())
+            <p class="text-center text-gray-500">Aucune demande pour le moment.</p>
+        @endif
+
+        <div>{{ $requests->links() }}</div>
     </div>
 </section>
 @endsection

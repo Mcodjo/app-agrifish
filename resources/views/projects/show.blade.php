@@ -22,7 +22,7 @@
                     <div class="h-full rounded-full bg-gold" style="width: {{ $progress }}%"></div>
                 </div>
                 <div class="mt-4 grid grid-cols-2 gap-3 text-sm text-white/75">
-                    <div>Statut: <strong class="text-white">{{ str_replace('_', ' ', $serviceRequest->status) }}</strong></div>
+                    <div>Statut: <strong class="text-white">{{ $serviceRequest->statusLabel() }}</strong></div>
                     <div>Expert: <strong class="text-white">{{ $serviceRequest->assignedExpert?->name ?? 'Non assigné' }}</strong></div>
                 </div>
             </div>
@@ -97,7 +97,7 @@
                                 </div>
                             @endif
 
-                            @if(auth()->user()->isAdmin() || auth()->user()->isExpert())
+                            @if($canManageMilestones)
                                 <form method="POST" action="{{ route('projects.milestones.update', $milestone) }}" enctype="multipart/form-data" class="mt-5 space-y-4 rounded-2xl bg-white p-4 ring-1 ring-gray-100">
                                     @csrf
                                     @method('PATCH')
@@ -138,7 +138,7 @@
                     @endforelse
                 </div>
 
-                @if(auth()->user()->isAdmin() || auth()->user()->isExpert())
+                @if($canManageMilestones)
                     <form method="POST" action="{{ route('projects.milestones.store', $serviceRequest) }}" class="mt-6 space-y-4 rounded-3xl bg-cream p-5">
                         @csrf
                         <h3 class="text-lg font-bold text-dark">Ajouter un jalon</h3>
@@ -181,12 +181,12 @@
                     @forelse($serviceRequest->messages as $message)
                         <div class="rounded-3xl {{ $message->sender_id === auth()->id() ? 'bg-primary/10 ml-6' : 'bg-cream mr-6' }} p-4">
                             <div class="flex items-center justify-between gap-4 text-xs text-gray-500">
-                                <strong class="text-dark">{{ $message->sender->name }}</strong>
+                                <strong class="text-dark">{{ $message->sender?->name ?? 'Utilisateur supprimé' }}</strong>
                                 <span>{{ $message->created_at->format('d/m/Y H:i') }}</span>
                             </div>
                             <p class="mt-3 text-sm leading-7 text-gray-700 whitespace-pre-line">{{ $message->body }}</p>
                             @if($message->attachment_path)
-                                <a href="{{ asset('storage/'.$message->attachment_path) }}" target="_blank" class="mt-3 inline-flex text-sm font-semibold text-primary">Pièce jointe</a>
+                                <a href="{{ route('projects.messages.attachment', [$serviceRequest, $message]) }}" class="mt-3 inline-flex text-sm font-semibold text-primary">Pièce jointe</a>
                             @endif
                         </div>
                     @empty

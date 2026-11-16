@@ -11,14 +11,21 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        $requests = ServiceRequest::query()
+        $query = ServiceRequest::query()
             ->with(['assignedExpert', 'milestones' => function ($query): void {
                 $query->orderBy('sort_order')->orderBy('id');
             }])
             ->withCount(['milestones', 'messages'])
-            ->where('client_id', $user->id)
-            ->latest()
-            ->get();
+            ->latest();
+
+        // Admin : toutes les demandes. Expert : celles qui lui sont assignées. Client : les siennes.
+        if ($user->isExpert()) {
+            $query->where('assigned_expert_id', $user->id);
+        } elseif (! $user->isAdmin()) {
+            $query->where('client_id', $user->id);
+        }
+
+        $requests = $query->get();
 
         $stats = [
             'total' => $requests->count(),

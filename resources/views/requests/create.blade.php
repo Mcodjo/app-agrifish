@@ -40,11 +40,9 @@
                         <label for="service_type" class="mb-2 block text-sm font-semibold text-gray-700">Type de service *</label>
                         <select id="service_type" name="service_type" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
                             <option value="">-- Choisissez --</option>
-                            <option value="agriculture" @selected(old('service_type') === 'agriculture')>Agriculture</option>
-                            <option value="aquaculture" @selected(old('service_type') === 'aquaculture')>Aquaculture</option>
-                            <option value="etude-technique" @selected(old('service_type') === 'etude-technique')>Étude technique</option>
-                            <option value="formation" @selected(old('service_type') === 'formation')>Formation</option>
-                            <option value="autre" @selected(old('service_type') === 'autre')>Autre</option>
+                            @foreach($serviceTypes as $value => $label)
+                                <option value="{{ $value }}" @selected(old('service_type') === $value)>{{ $label }}</option>
+                            @endforeach
                         </select>
                     </div>
 
@@ -70,7 +68,7 @@
 
                         <div>
                             <label for="documents" class="mb-2 block text-sm font-semibold text-gray-700">Documents</label>
-                            <input id="documents" name="documents[]" type="file" multiple class="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-primary file:px-4 file:py-3 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-dark">
+                            <input id="documents" name="documents[]" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" class="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-primary file:px-4 file:py-3 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-dark">
                         </div>
                     </div>
 

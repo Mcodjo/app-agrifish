@@ -5,15 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\ProjectMessage;
 use App\Models\ProjectMilestone;
 use App\Models\ServiceRequest;
+use App\Support\PrivateFiles;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 
 class ProjectController extends Controller
 {
     public function show(Request $request, ServiceRequest $serviceRequest)
     {
-        $this->authorizeAccess($request, $serviceRequest);
+        Gate::authorize('view', $serviceRequest);
 
         $serviceRequest->load([
             'client',
@@ -32,6 +33,7 @@ class ProjectController extends Controller
         return view('projects.show', [
             'serviceRequest' => $serviceRequest,
             'progress' => $progress,
+            'canManageMilestones' => $request->user()->can('manageMilestones', $serviceRequest),
             'milestoneStats' => [
                 'planned' => $milestoneStates->get('planned', 0),
                 'in_progress' => $milestoneStates->get('in_progress', 0),
@@ -44,17 +46,17 @@ class ProjectController extends Controller
 
     public function sendMessage(Request $request, ServiceRequest $serviceRequest): RedirectResponse
     {
-        $this->authorizeAccess($request, $serviceRequest);
+        Gate::authorize('message', $serviceRequest);
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'min:2', 'max:4000'],
-            'attachment' => ['nullable', 'file', 'max:5120', 'mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg'],
+            'attachment' => ['nullable', 'file', 'max:5120', 'mimes:'.PrivateFiles::ALLOWED_MIMES],
         ]);
 
         $attachmentPath = null;
 
         if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('project-messages/'.$serviceRequest->id, 'public');
+            $attachmentPath = PrivateFiles::store($request->file('attachment'), 'project-messages/'.$serviceRequest->id);
         }
 
         ProjectMessage::create([
@@ -67,35 +69,26 @@ class ProjectController extends Controller
         return back()->with('status', 'message-sent');
     }
 
-    public function downloadDocument(Request $request, ServiceRequest $serviceRequest, int $documentIndex)
+    public function downloadDocument(ServiceRequest $serviceRequest, int $documentIndex)
     {
-        $this->authorizeAccess($request, $serviceRequest);
+        Gate::authorize('view', $serviceRequest);
 
-        $path = $serviceRequest->document_paths[$documentIndex] ?? null;
-
-        abort_unless($path && Storage::disk('public')->exists($path), 404);
-
-        return Storage::disk('public')->download($path);
+        return PrivateFiles::download($serviceRequest->document_paths[$documentIndex] ?? null);
     }
 
-    public function downloadDeliverable(Request $request, ProjectMilestone $projectMilestone, int $deliverableIndex)
+    public function downloadDeliverable(ProjectMilestone $projectMilestone, int $deliverableIndex)
     {
-        $this->authorizeAccess($request, $projectMilestone->serviceRequest);
+        Gate::authorize('view', $projectMilestone->serviceRequest);
 
-        $path = $projectMilestone->deliverable_paths[$deliverableIndex] ?? null;
-
-        abort_unless($path && Storage::disk('public')->exists($path), 404);
-
-        return Storage::disk('public')->download($path);
+        return PrivateFiles::download($projectMilestone->deliverable_paths[$deliverableIndex] ?? null);
     }
 
-    protected function authorizeAccess(Request $request, ServiceRequest $serviceRequest): void
+    public function downloadMessageAttachment(ServiceRequest $serviceRequest, ProjectMessage $projectMessage)
     {
-        $user = $request->user();
+        Gate::authorize('view', $serviceRequest);
 
-        abort_unless(
-            $user && ($user->isAdmin() || $user->isExpert() || $serviceRequest->client_id === $user->id),
-            403
-        );
+        abort_unless($projectMessage->service_request_id === $serviceRequest->id, 404);
+
+        return PrivateFiles::download($projectMessage->attachment_path);
     }
 }

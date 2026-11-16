@@ -27,23 +27,9 @@ class ServiceRequestStatusChanged extends Notification
             ->greeting('Bonjour ' . $notifiable->name . ',')
             ->line('Le statut de votre demande a changé.')
             ->line('Référence: ' . $this->serviceRequest->reference)
-            ->line('Nouveau statut: ' . $this->labelForStatus($this->serviceRequest->status))
+            ->line('Nouveau statut: ' . $this->serviceRequest->statusLabel())
             ->lineWhen((bool) $this->serviceRequest->status_notes, 'Note: ' . $this->serviceRequest->status_notes)
-            ->action('Voir votre espace client', route('dashboard'))
+            ->action('Voir votre projet', route('projects.show', $this->serviceRequest))
             ->line('Merci de faire confiance à AgriFish.');
-    }
-
-    private function labelForStatus(string $status): string
-    {
-        return match ($status) {
-            'new' => 'Nouvelle',
-            'reviewing' => 'En revue',
-            'assigned' => 'Assignée',
-            'in_progress' => 'En cours',
-            'waiting_client' => 'En attente client',
-            'completed' => 'Terminée',
-            'closed' => 'Clôturée',
-            default => ucfirst($status),
-        };
     }
 }

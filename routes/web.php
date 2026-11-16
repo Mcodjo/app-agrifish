@@ -22,16 +22,31 @@ $profilePath = '/profile';
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/demande-service', [ServiceRequestController::class, 'create'])->name('requests.create');
-    Route::post('/demande-service', [ServiceRequestController::class, 'store'])->name('requests.store');
-    Route::get('/projets/{serviceRequest}', [ProjectController::class, 'show'])->name('projects.show');
-    Route::post('/projets/{serviceRequest}/messages', [ProjectController::class, 'sendMessage'])->name('projects.messages.store');
+    Route::post('/demande-service', [ServiceRequestController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('requests.store');
+    // L'accès à chaque projet est contrôlé par App\Policies\ServiceRequestPolicy.
+    Route::get('/projets/{serviceRequest}', [ProjectController::class, 'show'])
+        ->whereNumber('serviceRequest')
+        ->name('projects.show');
+    Route::post('/projets/{serviceRequest}/messages', [ProjectController::class, 'sendMessage'])
+        ->middleware('throttle:30,1')
+        ->name('projects.messages.store');
     Route::get('/projets/{serviceRequest}/documents/{documentIndex}', [ProjectController::class, 'downloadDocument'])
         ->whereNumber('documentIndex')
         ->name('projects.documents.download');
+    Route::get('/projets/{serviceRequest}/messages/{projectMessage}/piece-jointe', [ProjectController::class, 'downloadMessageAttachment'])
+        ->name('projects.messages.attachment');
+    // Les livrables doivent être téléchargeables par le client : route hors du groupe admin/expert.
+    Route::get('/jalons/{projectMilestone}/livrables/{deliverableIndex}', [ProjectController::class, 'downloadDeliverable'])
+        ->whereNumber('deliverableIndex')
+        ->name('projects.milestones.download');
 });
 
-// Formulaire de contact
-Route::post('/contact',      [ContactController::class, 'send'])->name('contact.send');
+// Formulaire de contact (limité contre le spam)
+Route::post('/contact',      [ContactController::class, 'send'])
+    ->middleware('throttle:5,1')
+    ->name('contact.send');
 Route::get('/contact/merci', [PageController::class, 'contactMerci'])->name('contact.merci');
 
 Route::middleware('auth')->group(function () use ($profilePath) {
@@ -48,9 +63,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:admin,expert'])->group(function () {
     Route::post('/projets/{serviceRequest}/jalons', [\App\Http\Controllers\Expert\ProjectMilestoneController::class, 'store'])->name('projects.milestones.store');
     Route::patch('/jalons/{projectMilestone}', [\App\Http\Controllers\Expert\ProjectMilestoneController::class, 'update'])->name('projects.milestones.update');
-    Route::get('/jalons/{projectMilestone}/livrables/{deliverableIndex}', [ProjectController::class, 'downloadDeliverable'])
-        ->whereNumber('deliverableIndex')
-        ->name('projects.milestones.download');
 });
 
 // Pages légales

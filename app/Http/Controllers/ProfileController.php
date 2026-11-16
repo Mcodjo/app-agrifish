@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Support\PrivateFiles;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -59,6 +60,16 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Les demandes sont supprimées en cascade par la base : on efface d'abord les fichiers associés.
+        $user->serviceRequests()->with('milestones:id,service_request_id')->get()
+            ->each(function ($serviceRequest): void {
+                PrivateFiles::deleteDirectory('service-requests/'.$serviceRequest->id);
+                PrivateFiles::deleteDirectory('project-messages/'.$serviceRequest->id);
+                $serviceRequest->milestones->each(
+                    fn ($milestone) => PrivateFiles::deleteDirectory('project-deliverables/'.$milestone->id)
+                );
+            });
 
         Auth::logout();
 

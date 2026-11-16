@@ -6,9 +6,9 @@ use App\Models\ProjectMessage;
 use App\Models\ProjectMilestone;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Support\PrivateFiles;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class DemoProjectSeeder extends Seeder
 {
@@ -28,7 +28,7 @@ class DemoProjectSeeder extends Seeder
         ];
 
         foreach ($demoFiles as $path => $content) {
-            Storage::disk('public')->put($path, $content);
+            Storage::disk(PrivateFiles::DISK)->put($path, $content);
         }
 
         $firstRequest = ServiceRequest::updateOrCreate(

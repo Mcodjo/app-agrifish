@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -12,8 +13,13 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    public const ROLES = ['client', 'expert', 'admin'];
+
     /**
      * The attributes that are mass assignable.
+     *
+     * « role » n'est volontairement PAS assignable en masse, pour qu'aucun formulaire
+     * ne puisse servir à s'attribuer le rôle admin ou expert. Utiliser forceFill().
      *
      * @var list<string>
      */
@@ -22,7 +28,6 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
-        'role',
         'preferences',
     ];
 
@@ -48,6 +53,11 @@ class User extends Authenticatable
             'password' => 'hashed',
             'preferences' => 'array',
         ];
+    }
+
+    public function serviceRequests(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class, 'client_id');
     }
 
     public function isAdmin(): bool

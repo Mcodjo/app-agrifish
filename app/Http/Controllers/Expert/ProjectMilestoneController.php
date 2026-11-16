@@ -5,19 +5,23 @@ namespace App\Http\Controllers\Expert;
 use App\Http\Controllers\Controller;
 use App\Models\ProjectMilestone;
 use App\Models\ServiceRequest;
+use App\Support\PrivateFiles;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ProjectMilestoneController extends Controller
 {
+    private const STATUSES = 'in:planned,in_progress,validated,blocked,completed';
+
     public function store(Request $request, ServiceRequest $serviceRequest): RedirectResponse
     {
-        $this->authorizeExpert($request, $serviceRequest);
+        Gate::authorize('manageMilestones', $serviceRequest);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:3000'],
-            'status' => ['required', 'in:planned,in_progress,validated,blocked,completed'],
+            'status' => ['required', self::STATUSES],
             'due_date' => ['nullable', 'date'],
         ]);
 
@@ -34,21 +38,21 @@ class ProjectMilestoneController extends Controller
 
     public function update(Request $request, ProjectMilestone $projectMilestone): RedirectResponse
     {
-        $this->authorizeExpert($request, $projectMilestone->serviceRequest);
+        Gate::authorize('manageMilestones', $projectMilestone->serviceRequest);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:3000'],
-            'status' => ['required', 'in:planned,in_progress,validated,blocked,completed'],
+            'status' => ['required', self::STATUSES],
             'due_date' => ['nullable', 'date'],
-            'deliverables' => ['nullable', 'array'],
-            'deliverables.*' => ['file', 'max:5120', 'mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg'],
+            'deliverables' => ['nullable', 'array', 'max:10'],
+            'deliverables.*' => ['file', 'max:5120', 'mimes:'.PrivateFiles::ALLOWED_MIMES],
         ]);
 
         $deliverablePaths = $projectMilestone->deliverable_paths ?? [];
 
         foreach ($request->file('deliverables', []) as $deliverable) {
-            $deliverablePaths[] = $deliverable->store('project-deliverables/'.$projectMilestone->id, 'public');
+            $deliverablePaths[] = PrivateFiles::store($deliverable, 'project-deliverables/'.$projectMilestone->id);
         }
 
         $projectMilestone->update([
@@ -60,12 +64,5 @@ class ProjectMilestoneController extends Controller
         ]);
 
         return back()->with('status', 'milestone-updated');
-    }
-
-    protected function authorizeExpert(Request $request, ServiceRequest $serviceRequest): void
-    {
-        $user = $request->user();
-
-        abort_unless($user && ($user->isAdmin() || $user->isExpert()), 403);
     }
 }

@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\ServiceRequest;
+use App\Support\PrivateFiles;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ServiceRequestController extends Controller
 {
@@ -18,22 +19,23 @@ class ServiceRequestController extends Controller
                 'url' => route('requests.create'),
             ],
             'user' => $request->user(),
+            'serviceTypes' => ServiceRequest::SERVICE_TYPES,
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'service_type' => ['required', 'string', 'max:100'],
+            'service_type' => ['required', Rule::in(array_keys(ServiceRequest::SERVICE_TYPES))],
             'title' => ['required', 'string', 'max:150'],
             'description' => ['required', 'string', 'min:20', 'max:5000'],
             'priority' => ['required', 'in:low,normal,high'],
-            'documents' => ['nullable', 'array'],
-            'documents.*' => ['file', 'max:5120', 'mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg'],
+            'documents' => ['nullable', 'array', 'max:10'],
+            'documents.*' => ['file', 'max:5120', 'mimes:'.PrivateFiles::ALLOWED_MIMES],
         ]);
 
         $requestModel = ServiceRequest::create([
-            'reference' => 'SRQ-' . Str::upper(Str::random(8)),
+            'reference' => ServiceRequest::generateReference(),
             'client_id' => $request->user()->id,
             'service_type' => $validated['service_type'],
             'title' => $validated['title'],
@@ -45,7 +47,7 @@ class ServiceRequestController extends Controller
         $documentPaths = [];
 
         foreach ($request->file('documents', []) as $document) {
-            $documentPaths[] = $document->store('service-requests/'.$requestModel->id, 'public');
+            $documentPaths[] = PrivateFiles::store($document, 'service-requests/'.$requestModel->id);
         }
 
         $requestModel->update([
