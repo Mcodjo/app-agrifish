@@ -5,14 +5,15 @@
 @layer base {
 	html {
 		scroll-behavior: smooth;
+		-webkit-text-size-adjust: 100%;
 	}
 
 	body {
-		@apply bg-white text-dark antialiased;
+		@apply bg-white font-sans text-dark antialiased;
 	}
 
 	::selection {
-		@apply bg-gold text-white;
+		@apply bg-primary-100 text-primary-900;
 	}
 
 	[x-cloak] {
@@ -20,54 +21,133 @@
 	}
 
 	:focus-visible {
-		@apply outline-none ring-2 ring-gold ring-offset-2;
+		@apply outline-none ring-2 ring-primary-400 ring-offset-2;
+	}
+
+	[id] {
+		scroll-margin-top: 6rem;
 	}
 }
 
 @layer components {
-	.field-label {
-		@apply mb-1.5 block text-sm font-semibold text-gray-700;
+	/* Titres éditoriaux (police à empattements) */
+	.display-xl {
+		@apply font-serif text-[2.6rem] font-normal leading-[1.06] tracking-[-0.02em] text-dark sm:text-[3.4rem] lg:text-[3.75rem];
 	}
 
-	.field-input {
-		@apply w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-dark placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20;
+	.display-lg {
+		@apply font-serif text-[2.2rem] font-normal leading-[1.08] tracking-[-0.015em] text-dark sm:text-5xl;
 	}
 
-	.field-error {
-		@apply mt-1.5 text-sm text-red-600;
+	.display-md {
+		@apply font-serif text-3xl font-normal leading-tight tracking-[-0.01em] text-dark sm:text-4xl;
+	}
+
+	.lead {
+		@apply text-lg leading-8 text-muted;
+	}
+
+	/* Boutons */
+	.btn {
+		@apply inline-flex items-center justify-center gap-2 rounded-[10px] px-5 py-3 text-[15px] font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60;
 	}
 
 	.btn-primary {
-		@apply inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60;
+		@apply btn bg-primary-800 text-white hover:bg-primary-600;
 	}
 
+	.btn-secondary {
+		@apply btn border border-line bg-white text-dark hover:border-dark/30;
+	}
+
+	.btn-soft {
+		@apply btn bg-cream text-dark hover:bg-sand;
+	}
+
+	.btn-light {
+		@apply btn bg-white text-primary-900 hover:bg-cream;
+	}
+
+	.btn-outline-light {
+		@apply btn border border-white/30 text-white hover:border-white/60;
+	}
+
+	/* Compatibilité avec les écrans de l'espace connecté */
 	.btn-gold {
-		@apply inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-gold-dark;
+		@apply btn-primary;
 	}
 
 	.btn-ghost {
-		@apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10;
+		@apply btn-secondary;
 	}
 
 	.btn-outline {
-		@apply inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-primary-dark transition hover:border-primary hover:bg-primary-50;
+		@apply btn border border-line bg-white px-4 py-2.5 text-sm text-dark hover:border-dark/30;
+	}
+
+	.link-arrow {
+		@apply inline-flex items-center gap-1.5 font-semibold text-primary-800 underline-offset-4 hover:underline;
+	}
+
+	/* Blocs */
+	.panel {
+		@apply rounded-[20px] bg-cream sm:rounded-panel;
 	}
 
 	.card {
-		@apply rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 sm:p-6;
+		@apply rounded-2xl border border-line bg-white p-5 sm:p-6;
+	}
+
+	.tag {
+		@apply inline-flex items-center rounded-full bg-cream px-2.5 py-1 text-xs font-medium text-dark;
+	}
+
+	/* Formulaires */
+	.field-label {
+		@apply mb-1.5 block text-sm font-semibold text-dark;
+	}
+
+	.field-input {
+		@apply w-full rounded-[10px] border border-line bg-white px-4 py-3 text-[15px] text-dark placeholder:text-muted/70 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20;
+	}
+
+	.field-error {
+		@apply mt-1.5 text-sm text-red-700;
+	}
+
+	/* Texte long (mentions légales, politique de confidentialité) */
+	.prose-legal h2 {
+		@apply mt-12 font-serif text-2xl text-dark first:mt-0;
+	}
+
+	.prose-legal p,
+	.prose-legal li {
+		@apply leading-7 text-muted;
+	}
+
+	.prose-legal p + p {
+		@apply mt-4;
+	}
+
+	.prose-legal ul {
+		@apply mt-3 list-disc space-y-1.5 pl-5;
+	}
+
+	.prose-legal a {
+		@apply font-medium text-primary-800 underline underline-offset-2;
+	}
+
+	.prose-legal strong {
+		@apply font-semibold text-dark;
 	}
 }
 
 @layer utilities {
 	.max-w-content {
-		@apply mx-auto max-w-7xl;
+		@apply mx-auto max-w-[1200px];
 	}
 
-	.hero-gradient {
-		@apply bg-gradient-to-br from-primary-dark via-primary to-primary-light;
-	}
-
-	.card-hover {
-		@apply transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl;
+	.px-site {
+		@apply px-5 sm:px-8;
 	}
 }

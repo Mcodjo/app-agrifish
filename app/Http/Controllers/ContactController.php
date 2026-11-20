@@ -15,6 +15,7 @@ class ContactController extends Controller
             'last_name'  => ['required', 'string', 'max:100'],
             'email'      => ['required', 'email', 'max:255'],
             'phone'      => ['nullable', 'string', 'max:30'],
+            'organisation' => ['nullable', 'string', 'max:150'],
             'subject'    => ['required', 'string', 'max:200'],
             'message'    => ['required', 'string', 'min:20', 'max:3000'],
             'consent'    => ['accepted'],
@@ -29,11 +30,9 @@ class ContactController extends Controller
             'consent.accepted'    => 'Vous devez accepter le traitement de vos données.',
         ]);
 
-        // Envoi de l'email à AgriFish
         Mail::to(config('mail.contact_address', 'contact@agrifish.africa'))
             ->send(new ContactFormMail($validated));
 
-        // Redirecting to confirmation page
         return redirect()->route('contact.merci');
     }
 }

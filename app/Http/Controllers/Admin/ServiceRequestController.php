@@ -53,7 +53,7 @@ class ServiceRequestController extends Controller
     {
         $validated = $request->validate([
             'status' => ['required', Rule::in(array_keys(ServiceRequest::STATUSES))],
-            // Seul un utilisateur ayant le rôle « expert » peut être assigné.
+            // Uniquement des utilisateurs ayant le rôle expert.
             'assigned_expert_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('role', 'expert')],
             'status_notes' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -74,7 +74,7 @@ class ServiceRequestController extends Controller
 
         $client = $serviceRequest->client;
 
-        // On ne notifie que lors d'un vrai changement de statut, et seulement si le client ne l'a pas désactivé.
+        // Notifier seulement si le statut change et si le client accepte ces e-mails.
         if ($statusChanged && $client && ($client->preferences['status_notifications'] ?? true)) {
             $client->notify(new ServiceRequestStatusChanged($serviceRequest));
         }

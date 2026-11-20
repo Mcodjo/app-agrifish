@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Les données de démo (comptes avec mot de passe connu) ne doivent jamais arriver en production.
+        // Données de démo (mots de passe connus) : jamais en production.
         if (! app()->environment(['local', 'testing'])) {
             $this->command?->warn('Données de démo ignorées : environnement « '.app()->environment().' ».');
 

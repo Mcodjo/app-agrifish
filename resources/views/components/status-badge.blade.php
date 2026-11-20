@@ -24,7 +24,7 @@
     $sizeClass = $size === 'lg' ? 'px-3 py-1.5 text-sm' : 'px-2.5 py-1 text-xs';
 @endphp
 
-<span {{ $attributes->merge(['class' => "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full font-semibold ring-1 ring-inset {$sizeClass} ".($styles[$status] ?? 'bg-gray-100 text-gray-700 ring-gray-200')]) }}>
+<span {{ $attributes->merge(['class' => "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full font-medium ring-1 ring-inset {$sizeClass} ".($styles[$status] ?? 'bg-gray-100 text-gray-700 ring-gray-200')]) }}>
     <span class="h-1.5 w-1.5 rounded-full {{ $dots[$status] ?? 'bg-gray-400' }}" aria-hidden="true"></span>
     {{ $label }}
 </span>

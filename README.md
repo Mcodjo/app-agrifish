@@ -1,77 +1,62 @@
-🌍 AgriFish — La plateforme digitale intelligente pour l’agriculture et l’aquaculture en Afrique
+# AgriFish
 
-AgriFish est une application web professionnelle qui centralise l’accompagnement agricole, la gestion de projets, les services techniques et la formation digitale au sein d’un seul écosystème intelligent.
+Site et espace client d’AgriFish, cabinet de conseil technique pour les projets agricoles et aquacoles en Afrique de l’Ouest : conseil, études de faisabilité, formation et suivi de projet en ligne.
 
-Conçue pour les producteurs, investisseurs, coopératives et porteurs de projets, AgriFish transforme le conseil agricole traditionnel en une plateforme moderne, structurée et scalable.
+Application Laravel 12 (PHP 8.4), Blade, Tailwind CSS et Alpine.js.
 
-🚀 Une solution complète en un seul outil
+## Fonctionnalités
 
-Avec AgriFish, les utilisateurs peuvent :
-
-✅ Accéder à des services d’expertise agricole et piscicole
-✅ Suivre leurs projets en temps réel
-✅ Gérer documents, rapports et études techniques
-✅ Communiquer directement avec des experts
-✅ Payer leurs prestations en ligne en toute sécurité
-✅ Se former via des modules digitaux certifiants
-
-🧠 Une plateforme structurée autour de 3 pôles stratégiques
-
-1. Site institutionnel premium
-Pour présenter l’impact, les services, les réalisations et renforcer la crédibilité auprès des partenaires et investisseurs.
-
-2. Espace client intelligent
-Un tableau de bord personnalisé pour chaque utilisateur avec suivi de projet, documents, messagerie, demandes de services et paiements intégrés.
-
-3. Pôle formation digitale
-Un centre de formation en ligne avec vidéos, supports PDF, inscriptions, paiements et certificats téléchargeables.
-
-🌱 Pensée pour l’Afrique, conçue pour la performance
-
-AgriFish est optimisée pour :
-
-• Connexions faibles
-• Utilisation mobile
-• Paiements locaux
-• Simplicité d’usage terrain
-
-🎯 Objectif
-
-Digitaliser l’accompagnement agricole, professionnaliser les services ruraux et accélérer la rentabilité des projets agricoles et piscicoles en Afrique.
-
-💡 En résumé
-
-AgriFish n’est pas un simple site web.
-C’est une plateforme digitale complète qui structure, automatise et développe l’agriculture moderne.
-
----
-
-## 📍 État d’avancement
-
-| Fonctionnalité | État |
+| Domaine | Contenu |
 |---|---|
-| Site institutionnel (accueil, services, projets, formation, contact) | ✅ Disponible |
-| Espace client : demandes, suivi de jalons, documents, messagerie | ✅ Disponible |
-| Espace expert (projets assignés, jalons, livrables) et admin (assignation, statuts) | ✅ Disponible |
-| Paiement en ligne | ⏳ Pas encore développé |
-| Pôle formation digitale (vidéos, inscriptions, certificats) | ⏳ Pas encore développé (page vitrine uniquement) |
+| Site public | Accueil, services, formation, réalisations, à propos, contact, mentions légales, politique de confidentialité |
+| Espace client | Dépôt d’une demande avec documents, suivi des étapes et de l’avancement, livrables, messagerie avec l’expert, e-mail à chaque changement de statut |
+| Espace expert | Projets assignés, création et mise à jour des étapes, dépôt des livrables |
+| Administration | Recherche et filtres par statut, assignation d’un expert, changement de statut avec note au client |
 
-## 🛠️ Installation (développement)
+Pas encore développé : le paiement en ligne et la formation en ligne (vidéos, inscription et attestation en ligne). La page Formation présente le catalogue et renvoie vers une demande d’inscription.
 
-Prérequis : PHP 8.4+, Composer, Node 20+.
+## Installation
+
+Prérequis : PHP 8.4, Composer, Node 20 ou plus.
 
 ```bash
-composer setup          # installe, crée .env, génère la clé, migre et compile les assets
-php artisan db:seed     # comptes de démo (environnement local uniquement)
-composer dev            # serveur, file d’attente, logs et Vite
-composer test           # tests
+composer setup
 ```
 
-## 🔐 Sécurité
+```bash
+php artisan db:seed
+```
 
-- Les fichiers clients (documents, livrables, pièces jointes) sont stockés sur le disque **privé**
-  `storage/app/private` et ne sont servis que par des routes contrôlées par `App\Policies\ServiceRequestPolicy`.
-- Un expert n’accède qu’aux projets qui lui sont assignés ; un client qu’à ses propres projets.
-- Le rôle (`client`, `expert`, `admin`) n’est pas modifiable par formulaire ; il s’attribue avec `forceFill`, par exemple :
-  `php artisan tinker` puis `User::where('email', '…')->first()->forceFill(['role' => 'admin'])->save();`
-- En production : `APP_ENV=production`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, et ne jamais lancer les seeders de démo.
+```bash
+composer dev
+```
+
+`composer setup` installe les dépendances, crée le fichier `.env`, génère la clé, lance les migrations et compile les assets. `db:seed` crée des comptes et des projets de démonstration (environnement local uniquement).
+
+## Contenu du site
+
+- **Coordonnées** : `SITE_EMAIL`, `SITE_TELEPHONE` et `SITE_WHATSAPP` dans `.env`. Un champ vide masque l’élément (le bouton WhatsApp n’apparaît que si le numéro est renseigné).
+- **Textes** : `config/site.php` regroupe les chiffres clés, les services, la méthode, les réalisations, les formations et les questions fréquentes. Les chiffres et les réalisations sont à vérifier avant la mise en ligne.
+- **Photos** : `public/images/photos/`. Les images actuelles sont des illustrations sous licence libre, créditées dans `config/site.php` et sur la page Mentions légales. Pour les remplacer par des photos de vos missions, gardez le même nom de fichier en WebP, en 1024 px de large et en 640 px (suffixe `-640`).
+- **Capture de l’espace client** : `public/images/plateforme/suivi-projet.webp`, affichée sur la page d’accueil.
+
+## Charte graphique
+
+- Titres en Newsreader, texte en Figtree. Les deux polices sont hébergées avec le site (paquets `@fontsource`), sans appel à un service externe.
+- Couleurs principales : vert `#1b4332`, fond sable `#f4f2ec`, texte `#17211b`, or `#b8862b` réservé au logo et aux numéros d’étapes.
+- Composants Blade réutilisables dans `resources/views/components` : `page-header`, `photo`, `steps`, `faq`, `cta-final`, `legal-page`, `status-badge`, `file-input`.
+
+Les pages suivent la structure d’une page d’atterrissage : accroche, chiffres clés, offre, méthode en étapes, preuve (espace client, exemples de missions), questions fréquentes, appel à l’action final et pied de page.
+
+## Sécurité
+
+- Les documents, livrables et pièces jointes sont stockés dans `storage/app/private` et ne sont servis qu’après contrôle d’accès (`App\Policies\ServiceRequestPolicy`).
+- Un expert n’accède qu’aux projets qui lui sont assignés, un client qu’à ses propres projets.
+- Le rôle (`client`, `expert`, `admin`) ne peut pas être modifié par formulaire. Pour nommer un administrateur : `php artisan tinker`, puis `User::where('email', '…')->first()->forceFill(['role' => 'admin'])->save();`.
+- En production : `APP_ENV=production`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, et ne pas lancer les données de démonstration.
+
+## Tests
+
+```bash
+composer test
+```

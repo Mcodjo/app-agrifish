@@ -18,8 +18,7 @@ class User extends Authenticatable
     /**
      * The attributes that are mass assignable.
      *
-     * « role » n'est volontairement PAS assignable en masse, pour qu'aucun formulaire
-     * ne puisse servir à s'attribuer le rôle admin ou expert. Utiliser forceFill().
+     * Le rôle n'en fait pas partie : il s'attribue avec forceFill().
      *
      * @var list<string>
      */

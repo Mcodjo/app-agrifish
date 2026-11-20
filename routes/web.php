@@ -25,7 +25,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/demande-service', [ServiceRequestController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('requests.store');
-    // L'accès à chaque projet est contrôlé par App\Policies\ServiceRequestPolicy.
+    // Accès contrôlé par ServiceRequestPolicy.
     Route::get('/projets/{serviceRequest}', [ProjectController::class, 'show'])
         ->whereNumber('serviceRequest')
         ->name('projects.show');
@@ -37,7 +37,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('projects.documents.download');
     Route::get('/projets/{serviceRequest}/messages/{projectMessage}/piece-jointe', [ProjectController::class, 'downloadMessageAttachment'])
         ->name('projects.messages.attachment');
-    // Les livrables doivent être téléchargeables par le client : route hors du groupe admin/expert.
+    // Accessible au client : hors du groupe admin/expert.
     Route::get('/jalons/{projectMilestone}/livrables/{deliverableIndex}', [ProjectController::class, 'downloadDeliverable'])
         ->whereNumber('deliverableIndex')
         ->name('projects.milestones.download');

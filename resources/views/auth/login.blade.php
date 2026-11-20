@@ -1,58 +1,39 @@
-<x-guest-layout>
-    <div class="mb-8">
-        <h1 class="text-3xl font-extrabold text-gray-900">Connexion</h1>
-        <p class="mt-2 text-sm text-gray-600">Accédez à votre espace AgriFish pour suivre vos services et vos demandes.</p>
-    </div>
+<x-guest-layout title="Connexion">
+    <h1 class="font-serif text-4xl tracking-[-0.01em] text-dark">Connexion</h1>
+    <p class="mt-3 text-[15px] leading-7 text-muted">Accédez à votre espace pour suivre vos demandes, vos documents et vos échanges avec nos experts.</p>
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <x-auth-session-status class="mt-6" :status="session('status')" />
 
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('login') }}" class="mt-8 space-y-5">
         @csrf
 
-        <!-- Email Address -->
         <div>
-            <x-input-label for="email" :value="__('Adresse email')" />
-            <x-text-input id="email" class="mt-1" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" placeholder="vous@exemple.com" />
+            <x-input-label for="email" value="Adresse e-mail" />
+            <x-text-input id="email" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Mot de passe')" />
-
-            <x-text-input id="password" class="mt-1"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password"
-                            placeholder="Votre mot de passe" />
-
+        <div>
+            <div class="flex items-baseline justify-between">
+                <x-input-label for="password" value="Mot de passe" />
+                @if (Route::has('password.request'))
+                    <a class="text-sm text-muted underline-offset-2 hover:text-dark hover:underline" href="{{ route('password.request') }}">Mot de passe oublié ?</a>
+                @endif
+            </div>
+            <x-text-input id="password" type="password" name="password" required autocomplete="current-password" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-primary shadow-sm focus:ring-primary" name="remember">
-                <span class="ms-2 text-sm text-gray-600">Se souvenir de moi</span>
-            </label>
-        </div>
+        <label for="remember_me" class="flex items-center gap-2.5 text-sm text-muted">
+            <input id="remember_me" type="checkbox" name="remember" class="h-4 w-4 rounded border-line text-primary-800 focus:ring-primary-500">
+            Rester connecté
+        </label>
 
-        <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4 mt-6">
-            @if (Route::has('password.request'))
-                <a class="text-sm font-semibold text-primary hover:text-primary-dark" href="{{ route('password.request') }}">
-                    Mot de passe oublié ?
-                </a>
-            @endif
-
-            <x-primary-button class="sm:ms-3">
-                Se connecter
-            </x-primary-button>
-        </div>
+        <x-primary-button class="w-full">Se connecter</x-primary-button>
     </form>
 
-    <p class="mt-8 text-sm text-gray-600">
-        Vous n'avez pas encore de compte ?
-        <a href="{{ route('register') }}" class="font-semibold text-primary hover:text-primary-dark">Créer un compte</a>
+    <p class="mt-8 border-t border-line pt-6 text-sm text-muted">
+        Pas encore de compte ?
+        <a href="{{ route('register') }}" class="font-semibold text-dark underline-offset-2 hover:underline">Créer un compte</a>
     </p>
 </x-guest-layout>

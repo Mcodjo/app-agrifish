@@ -34,7 +34,7 @@ class DashboardController extends Controller
             'alerts' => $requests->whereIn('status', ['new', 'reviewing', 'waiting_client'])->count(),
         ];
 
-        // « Actions requises » : uniquement ce qui demande vraiment une intervention de l'utilisateur.
+        // Actions requises : seulement ce qui attend une intervention de l'utilisateur.
         $alerts = $requests->map(function (ServiceRequest $serviceRequest) use ($user) {
             $blocked = $serviceRequest->milestones->firstWhere('status', 'blocked');
 
@@ -42,9 +42,9 @@ class DashboardController extends Controller
                 $serviceRequest->status === 'waiting_client' => $user->isExpert() || $user->isAdmin()
                     ? 'En attente d’une réponse du client.'
                     : 'Votre réponse est attendue pour avancer.',
-                $blocked !== null => 'Jalon bloqué : '.$blocked->title.'.',
+                $blocked !== null => 'Étape bloquée : '.$blocked->title.'.',
                 $user->isAdmin() && $serviceRequest->status === 'new' => 'Nouvelle demande à analyser et assigner.',
-                $user->isExpert() && $serviceRequest->milestones->isEmpty() => 'Aucun jalon défini : planifiez les étapes.',
+                $user->isExpert() && $serviceRequest->milestones->isEmpty() => 'Aucune étape définie : planifiez le projet.',
                 default => null,
             };
 

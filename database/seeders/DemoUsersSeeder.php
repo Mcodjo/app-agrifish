@@ -7,14 +7,14 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Comptes de démonstration — uniquement pour les environnements local / testing
- * (voir DatabaseSeeder). Mot de passe configurable via DEMO_USER_PASSWORD.
+ * Comptes de démonstration, pour les environnements local et testing.
+ * Mot de passe : variable DEMO_USER_PASSWORD.
  */
 class DemoUsersSeeder extends Seeder
 {
     public function run(): void
     {
-        // « ?: » et non une valeur par défaut d'env() : une variable présente mais vide renvoie "".
+        // env() renvoie une chaîne vide quand la variable existe sans valeur.
         $password = Hash::make(env('DEMO_USER_PASSWORD') ?: 'Password123!');
 
         $preferences = [
@@ -25,9 +25,9 @@ class DemoUsersSeeder extends Seeder
         ];
 
         foreach ([
-            ['email' => 'client@agrifish.africa', 'name' => 'Client Démo', 'role' => 'client', 'phone' => '+2250102030405'],
-            ['email' => 'admin@agrifish.africa', 'name' => 'Admin AgriFish', 'role' => 'admin', 'phone' => '+2250102030406'],
-            ['email' => 'expert@agrifish.africa', 'name' => 'Expert AgriFish', 'role' => 'expert', 'phone' => '+2250102030407'],
+            ['email' => 'client@agrifish.africa', 'name' => 'Mariam Ouattara', 'role' => 'client', 'phone' => '+2250102030405'],
+            ['email' => 'admin@agrifish.africa', 'name' => 'Administration AgriFish', 'role' => 'admin', 'phone' => '+2250102030406'],
+            ['email' => 'expert@agrifish.africa', 'name' => 'Ibrahima Sow', 'role' => 'expert', 'phone' => '+2250102030407'],
         ] as $account) {
             $user = User::firstOrNew(['email' => $account['email']]);
 

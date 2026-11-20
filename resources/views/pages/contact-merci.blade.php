@@ -1,27 +1,29 @@
 @extends('layouts.app')
 
-@section('title', $seo['title'])
-@section('meta_description', $seo['description'])
-@section('og_title', $seo['title'])
-@section('og_description', $seo['description'])
-@section('og_url', $seo['url'])
+@section('title', 'Message envoyé')
+@section('meta_description', 'Votre message a bien été envoyé à l’équipe AgriFish.')
 
 @section('content')
-<section class="relative min-h-[75vh] overflow-hidden bg-gradient-to-br from-primary-dark via-primary to-primary-light text-white flex items-center">
-    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 36px 36px;"></div>
-    <div class="max-w-3xl mx-auto px-4 text-center relative z-10 py-20">
-        <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-white/20 bg-white/10">
-            <svg class="h-12 w-12 text-gold-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
+<section class="max-w-content px-site py-20 sm:py-28">
+    <div class="mx-auto max-w-2xl text-center">
+        <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-50 text-primary-800">
+            <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+        </span>
+        <h1 class="display-lg mt-8">Merci, votre message est bien arrivé</h1>
+        <p class="lead mx-auto mt-5 max-w-lg">Nous vous répondons sous {{ config('site.contact.delai') }}, à l’adresse e-mail indiquée dans le formulaire.</p>
+        <div class="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
+            <a href="{{ route('home') }}" class="btn-primary">Retour à l’accueil</a>
+            <a href="{{ route('services') }}" class="btn-secondary">Voir nos services</a>
         </div>
+    </div>
 
-        <h1 class="mt-8 text-4xl font-extrabold sm:text-5xl">Message envoyé</h1>
-        <p class="mx-auto mt-5 max-w-2xl text-lg leading-8 text-white/78">Merci pour votre message. Nous l’avons bien reçu et nous vous répondrons sous 24 heures ouvrables.</p>
-
-        <div class="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <a href="{{ route('home') }}" class="inline-flex items-center justify-center rounded-xl bg-gold px-7 py-4 font-bold text-white transition hover:bg-gold-dark">Retour à l’accueil</a>
-            <a href="{{ route('services') }}" class="inline-flex items-center justify-center rounded-xl border border-white/30 px-7 py-4 font-semibold text-white transition hover:bg-white/10">Voir nos services</a>
+    <div class="mx-auto mt-16 max-w-3xl rounded-2xl border border-line p-6 sm:p-8">
+        <div class="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div>
+                <h2 class="font-semibold text-dark">Vous avez un projet à suivre ?</h2>
+                <p class="mt-1 text-[15px] leading-7 text-muted">Créez votre espace client pour déposer vos documents et suivre l’avancement de votre demande.</p>
+            </div>
+            <a href="{{ route('register') }}" class="btn-soft">Créer mon espace</a>
         </div>
     </div>
 </section>

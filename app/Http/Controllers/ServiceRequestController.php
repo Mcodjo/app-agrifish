@@ -13,11 +13,6 @@ class ServiceRequestController extends Controller
     public function create(Request $request)
     {
         return view('requests.create', [
-            'seo' => [
-                'title' => 'Nouvelle demande de service',
-                'description' => 'Déposez une demande de service avec vos documents pour être accompagné par AgriFish.',
-                'url' => route('requests.create'),
-            ],
             'user' => $request->user(),
             'serviceTypes' => ServiceRequest::SERVICE_TYPES,
         ]);

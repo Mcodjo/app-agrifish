@@ -2,106 +2,52 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class PageController extends Controller
 {
-    public function home()
+    public function home(): View
     {
-        return view('pages.home', [
-            'seo' => [
-                'title' => 'Accueil',
-                'description' => 'AgriFish accompagne les projets agricoles et aquacoles en Afrique avec conseil, études techniques, réalisations et formation.',
-                'url' => route('home'),
-            ],
-        ]);
+        return view('pages.home');
     }
 
-    public function about()
+    public function about(): View
     {
-        return view('pages.about', [
-            'seo' => [
-                'title' => 'À propos et équipe',
-                'description' => 'Découvrez la mission AgriFish, notre équipe et notre approche de terrain au service des projets agricoles et aquacoles.',
-                'url' => route('about'),
-            ],
-        ]);
+        return view('pages.about');
     }
 
-    public function services()
+    public function services(): View
     {
-        return view('pages.services', [
-            'seo' => [
-                'title' => 'Services',
-                'description' => 'Agriculture, aquaculture et études techniques: des services structurés pour concevoir, lancer et améliorer vos projets.',
-                'url' => route('services'),
-            ],
-        ]);
+        return view('pages.services');
     }
 
-    public function formation()
+    public function formation(): View
     {
-        return view('pages.formation', [
-            'seo' => [
-                'title' => 'Formation',
-                'description' => 'Catalogue de formations AgriFish: agriculture, aquaculture, gestion et business pour les professionnels du terrain.',
-                'url' => route('formation'),
-            ],
-        ]);
+        return view('pages.formation');
     }
 
-    public function contact()
+    public function caseStudies(): View
     {
-        return view('pages.contact', [
-            'seo' => [
-                'title' => 'Contact',
-                'description' => 'Contactez AgriFish pour une demande de conseil, un projet, une étude technique ou une formation.',
-                'url' => route('contact'),
-            ],
-        ]);
+        return view('pages.etudes-de-cas');
     }
 
-    public function contactMerci()
+    public function contact(): View
     {
-        return view('pages.contact-merci', [
-            'seo' => [
-                'title' => 'Message envoyé',
-                'description' => 'Votre message a bien été envoyé à l’équipe AgriFish.',
-                'url' => route('contact.merci'),
-            ],
-        ]);
+        return view('pages.contact');
     }
 
-    public function mentionsLegales()
+    public function contactMerci(): View
     {
-        return view('pages.mentions-legales', [
-            'seo' => [
-                'title' => 'Mentions légales',
-                'description' => 'Mentions légales du site AgriFish.',
-                'url' => route('mentions-legales'),
-            ],
-        ]);
+        return view('pages.contact-merci');
     }
 
-    public function politiqueConfidentialite()
+    public function mentionsLegales(): View
     {
-        return view('pages.politique-confidentialite', [
-            'seo' => [
-                'title' => 'Confidentialité',
-                'description' => 'Politique de confidentialité et traitement des données personnelles chez AgriFish.',
-                'url' => route('politique-confidentialite'),
-            ],
-        ]);
+        return view('pages.mentions-legales');
     }
 
-    public function caseStudies()
+    public function politiqueConfidentialite(): View
     {
-        return view('pages.etudes-de-cas', [
-            'seo' => [
-                'title' => 'Réalisations et projets',
-                'description' => 'Projets AgriFish, études de cas et galerie de réalisations sur le terrain.',
-                'url' => route('case-studies'),
-            ],
-        ]);
+        return view('pages.politique-confidentialite');
     }
 }

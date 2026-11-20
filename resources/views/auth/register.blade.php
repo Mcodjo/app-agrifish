@@ -1,58 +1,42 @@
-<x-guest-layout>
-    <div class="mb-8">
-        <h1 class="text-3xl font-extrabold text-gray-900">Créer un compte</h1>
-        <p class="mt-2 text-sm text-gray-600">Accédez à votre espace AgriFish et lancez votre parcours.</p>
-    </div>
+<x-guest-layout title="Créer un compte">
+    <h1 class="font-serif text-4xl tracking-[-0.01em] text-dark">Créer un compte</h1>
+    <p class="mt-3 text-[15px] leading-7 text-muted">Votre espace vous permet de déposer une demande, de partager vos documents et de suivre votre projet.</p>
 
-    <form method="POST" action="{{ route('register') }}">
+    <form method="POST" action="{{ route('register') }}" class="mt-8 space-y-5">
         @csrf
 
-        <!-- Name -->
         <div>
-            <x-input-label for="name" :value="__('Nom complet')" />
-            <x-text-input id="name" class="mt-1" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="Votre nom" />
+            <x-input-label for="name" value="Nom complet" />
+            <x-text-input id="name" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Adresse email')" />
-            <x-text-input id="email" class="mt-1" type="email" name="email" :value="old('email')" required autocomplete="username" placeholder="vous@exemple.com" />
+        <div>
+            <x-input-label for="email" value="Adresse e-mail" />
+            <x-text-input id="email" type="email" name="email" :value="old('email')" required autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Mot de passe')" />
-
-            <x-text-input id="password" class="mt-1"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password"
-                            placeholder="Créer un mot de passe" />
-
+        <div>
+            <x-input-label for="password" value="Mot de passe" />
+            <x-text-input id="password" type="password" name="password" required autocomplete="new-password" />
+            <p class="mt-1.5 text-xs text-muted">8 caractères minimum.</p>
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirmer le mot de passe')" />
-
-            <x-text-input id="password_confirmation" class="mt-1"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
+        <div>
+            <x-input-label for="password_confirmation" value="Confirmer le mot de passe" />
+            <x-text-input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4 mt-6">
-            <a class="text-sm font-semibold text-primary hover:text-primary-dark" href="{{ route('login') }}">
-                Déjà inscrit ?
-            </a>
+        <x-primary-button class="w-full">Créer mon compte</x-primary-button>
 
-            <x-primary-button class="sm:ms-4">
-                Créer mon compte
-            </x-primary-button>
-        </div>
+        <p class="text-xs leading-5 text-muted">En créant un compte, vous acceptez le traitement de vos données décrit dans la <a href="{{ route('politique-confidentialite') }}" class="underline underline-offset-2">politique de confidentialité</a>.</p>
     </form>
+
+    <p class="mt-8 border-t border-line pt-6 text-sm text-muted">
+        Déjà inscrit ?
+        <a href="{{ route('login') }}" class="font-semibold text-dark underline-offset-2 hover:underline">Se connecter</a>
+    </p>
 </x-guest-layout>

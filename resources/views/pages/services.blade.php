@@ -1,75 +1,75 @@
 @extends('layouts.app')
 
-@section('title', 'Nos services')
-@section('meta_description', 'Conseil agricole, aquaculture et études techniques pour vos projets en Afrique.')
-@section('og_title', 'Nos services')
-@section('og_description', 'Conseil agricole, aquaculture et études techniques pour vos projets en Afrique.')
-@section('og_url', url()->current())
+@section('title', 'Services')
+@section('meta_description', 'Conseil agricole, développement piscicole et études de faisabilité : les prestations d’AgriFish pour vos projets en Afrique de l’Ouest.')
+
+@php $services = config('site.services'); @endphp
 
 @section('content')
-<section class="relative overflow-hidden bg-primary-dark text-white">
-    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 36px 36px;"></div>
-    <div class="max-w-content mx-auto px-4 lg:px-8 pt-20 pb-20 lg:pt-28 lg:pb-24 relative z-10 text-center">
-        <p class="text-sm font-bold uppercase tracking-[0.24em] text-gold-light">Nos services</p>
-        <h1 class="mt-4 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-7xl">Agriculture, aquaculture et études techniques.</h1>
-        <p class="mx-auto mt-6 max-w-3xl text-lg leading-8 text-white/78 lg:text-xl">Des prestations claires pour concevoir, sécuriser et améliorer vos projets avec une logique terrain et des livrables actionnables.</p>
+<x-page-header label="Services"
+               title="Agriculture, aquaculture et études techniques"
+               intro="Nous intervenons sur le terrain et à distance pour préparer, lancer et améliorer des projets de production, du diagnostic jusqu’au suivi." />
+
+<nav class="sticky top-16 z-30 border-b border-line bg-white lg:top-[72px]" aria-label="Sur cette page">
+    <div class="max-w-content flex gap-6 overflow-x-auto px-site text-[15px]">
+        @foreach($services as $key => $service)
+            <a href="#{{ $key }}" class="shrink-0 border-b-2 border-transparent py-4 text-muted hover:border-dark hover:text-dark">{{ $service['titre'] }}</a>
+        @endforeach
+        <a href="#methode" class="shrink-0 border-b-2 border-transparent py-4 text-muted hover:border-dark hover:text-dark">Méthode</a>
+        <a href="#publics" class="shrink-0 border-b-2 border-transparent py-4 text-muted hover:border-dark hover:text-dark">Pour qui</a>
+    </div>
+</nav>
+
+@foreach($services as $key => $service)
+    <section id="{{ $key }}" class="max-w-content px-site py-16 lg:py-24 {{ $loop->first ? '' : 'border-t border-line' }}">
+        <div class="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
+            <div class="aspect-[4/3] overflow-hidden rounded-[20px] sm:rounded-panel {{ $loop->odd ? '' : 'lg:order-2' }}">
+                <x-photo :name="$service['photo']" :alt="$service['photo_alt']" sizes="(min-width: 1024px) 560px, 100vw" />
+            </div>
+            <div class="lg:pt-4">
+                <p class="text-sm text-muted">{{ $service['intitule'] }}</p>
+                <h2 class="display-md mt-2">{{ $service['titre'] }}</h2>
+                <p class="mt-4 text-[17px] leading-8 text-muted">{{ $service['resume'] }}</p>
+                <dl class="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+                    @foreach($service['prestations'] as [$prestation, $detail])
+                        <div class="border-t border-line pt-4">
+                            <dt class="font-semibold text-dark">{{ $prestation }}</dt>
+                            <dd class="mt-1.5 text-[15px] leading-7 text-muted">{{ $detail }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+                <a href="{{ route('contact', ['sujet' => $service['intitule']]) }}" class="btn-secondary mt-9">Demander un devis</a>
+            </div>
+        </div>
+    </section>
+@endforeach
+
+<section id="methode" class="max-w-content px-site pb-16 lg:pb-24">
+    <div class="panel px-6 py-12 sm:px-10 lg:px-14 lg:py-16">
+        <div class="grid gap-6 lg:grid-cols-2 lg:items-end">
+            <h2 class="display-md max-w-md">Notre méthode d’intervention</h2>
+            <p class="max-w-lg text-[17px] leading-8 text-muted">La même démarche pour chaque mission, quelle que soit sa taille. Un expert attitré suit votre projet du début à la fin.</p>
+        </div>
+        <x-steps :items="config('site.methode')" class="mt-12" />
     </div>
 </section>
 
-<section class="bg-white py-20 lg:py-24">
-    <div class="max-w-content mx-auto px-4 lg:px-8">
-        <div class="grid gap-6 lg:grid-cols-3">
-            @foreach([
-                ['Agriculture', 'Accompagnement agricole', 'Diagnostic de parcelle, conseils agronomiques, itinéraires techniques et suivi des cultures.', ['Diagnostic terrain', 'Plan cultural', 'Suivi technique', 'Recommandations']],
-                ['Aquaculture', 'Développement piscicole', 'Conception de sites d’élevage, assistance technique, gestion de l’eau et performance des systèmes.', ['Choix du site', 'Dimensionnement', 'Pilotage eau', 'Optimisation rendement']],
-                ['Études techniques', 'Études de faisabilité', 'Pré-études, chiffrage, scénarios d’investissement et analyse de rentabilité.', ['Faisabilité', 'Budget prévisionnel', 'Risques', 'Feuille de route']],
-            ] as $service)
-                <article class="rounded-3xl border border-gray-100 bg-cream p-8 shadow-sm card-hover">
-                    <p class="text-sm font-bold uppercase tracking-[0.2em] text-gold">{{ $service[0] }}</p>
-                    <h2 class="mt-3 text-2xl font-bold text-dark">{{ $service[1] }}</h2>
-                    <p class="mt-4 text-gray-600 leading-7">{{ $service[2] }}</p>
-                    <ul class="mt-6 space-y-3">
-                        @foreach($service[3] as $item)
-                            <li class="flex items-center gap-3 text-sm font-medium text-dark"><span class="h-2 w-2 rounded-full bg-gold"></span>{{ $item }}</li>
-                        @endforeach
-                    </ul>
-                </article>
+<section id="publics" class="border-t border-line">
+    <div class="max-w-content px-site py-16 lg:py-24">
+        <h2 class="display-md max-w-xl">Pour qui intervenons-nous ?</h2>
+        <div class="mt-10 grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+            @foreach(config('site.publics') as [$public, $texte])
+                <div class="border-t border-dark/15 pt-5">
+                    <h3 class="font-semibold text-dark">{{ $public }}</h3>
+                    <p class="mt-2 text-[15px] leading-7 text-muted">{{ $texte }}</p>
+                </div>
             @endforeach
         </div>
     </div>
 </section>
+@endsection
 
-<section class="bg-cream py-20 lg:py-24">
-    <div class="max-w-content mx-auto px-4 lg:px-8">
-        <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-            <div>
-                <p class="text-sm font-bold uppercase tracking-[0.24em] text-gold">Notre méthode</p>
-                <h2 class="mt-3 text-3xl font-extrabold text-dark lg:text-5xl">Simple, structurée, utile.</h2>
-                <p class="mt-5 text-lg leading-8 text-gray-600">Nous partons du besoin, clarifions les options, puis livrons un plan d’action adapté à votre contexte et à votre budget.</p>
-            </div>
-            <div class="grid gap-4 sm:grid-cols-2">
-                @foreach([
-                    ['01', 'Prise de contact', 'Compréhension rapide du besoin.'],
-                    ['02', 'Diagnostic', 'Analyse terrain et contraintes.'],
-                    ['03', 'Préconisations', 'Livrable et feuille de route.'],
-                    ['04', 'Suivi', 'Ajustements et accompagnement.'],
-                ] as $step)
-                    <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-                        <div class="text-sm font-bold uppercase tracking-[0.2em] text-gold">{{ $step[0] }}</div>
-                        <div class="mt-3 text-xl font-bold text-dark">{{ $step[1] }}</div>
-                        <p class="mt-3 text-sm leading-7 text-gray-500">{{ $step[2] }}</p>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="bg-white py-20 lg:py-24 text-center">
-    <div class="max-w-content mx-auto px-4 lg:px-8">
-        <h2 class="text-3xl font-extrabold text-dark lg:text-5xl">Besoin d’un cadrage rapide ?</h2>
-        <p class="mx-auto mt-5 max-w-2xl text-lg leading-8 text-gray-600">Décrivez votre projet et nous vous orienterons vers la bonne prestation.</p>
-        <a href="{{ route('contact') }}" class="mt-8 inline-flex items-center justify-center rounded-xl bg-primary-dark px-7 py-4 font-bold text-white transition hover:bg-primary">Contacter AgriFish</a>
-    </div>
-</section>
+@section('cta')
+    <x-cta-final title="Besoin d’un premier avis sur votre projet ?"
+                 :secondary="['Déposer une demande', route('requests.create')]" />
 @endsection

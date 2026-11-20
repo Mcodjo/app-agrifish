@@ -61,7 +61,7 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        // Les demandes sont supprimées en cascade par la base : on efface d'abord les fichiers associés.
+        // La base supprime les demandes en cascade : effacer leurs fichiers avant.
         $user->serviceRequests()->with('milestones:id,service_request_id')->get()
             ->each(function ($serviceRequest): void {
                 PrivateFiles::deleteDirectory('service-requests/'.$serviceRequest->id);

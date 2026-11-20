@@ -7,17 +7,14 @@ use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Stockage des fichiers clients (documents, livrables, pièces jointes).
- *
- * Les fichiers sont enregistrés sur le disque privé « local » (storage/app/private),
- * qui n'est jamais exposé par le lien public /storage. Ils ne sont servis que par
- * des routes contrôlées par ServiceRequestPolicy.
+ * Fichiers clients (documents, livrables, pièces jointes), stockés dans storage/app/private
+ * et servis uniquement par les routes de ProjectController, après contrôle d'accès.
  */
 class PrivateFiles
 {
     public const DISK = 'local';
 
-    /** Ancien disque utilisé avant la correction : lu uniquement pour les fichiers déjà existants. */
+    /** Disque des versions précédentes, lu pour les fichiers déjà déposés. */
     public const LEGACY_DISK = 'public';
 
     public const ALLOWED_MIMES = 'pdf,doc,docx,xls,xlsx,png,jpg,jpeg';

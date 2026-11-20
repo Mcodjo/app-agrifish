@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "mcodjo/app-agrifish",
     "type": "project",
-    "description": "AgriFish — plateforme de conseil, suivi de projets et formation agricole et aquacole.",
+    "description": "AgriFish : conseil, études et formation pour les projets agricoles et aquacoles, avec suivi de projet en ligne.",
     "keywords": ["laravel", "agriculture", "aquaculture"],
     "license": "MIT",
     "require": {

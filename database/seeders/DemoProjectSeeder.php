@@ -18,13 +18,13 @@ class DemoProjectSeeder extends Seeder
         $expert = User::query()->where('email', 'expert@agrifish.africa')->firstOrFail();
 
         $demoFiles = [
-            'demo-seed/request-brief.pdf' => 'Demande de cadrage AgriFish - document de test',
-            'demo-seed/project-report.pdf' => 'Rapport technique de test AgriFish',
+            'demo-seed/request-brief.pdf' => 'Plan des parcelles (exemple)',
+            'demo-seed/project-report.pdf' => 'Résultats de la campagne précédente (exemple)',
 
-            'demo-seed/contract-draft.docx' => 'Brouillon de contrat de test AgriFish',
-            'demo-seed/deliverable-plan.xlsx' => 'Tableau de jalons de test AgriFish',
-            'demo-seed/deliverable-report.pdf' => 'Livrable de test AgriFish',
-            'demo-seed/client-note.txt' => 'Note interne de test',
+            'demo-seed/contract-draft.docx' => 'Proposition d’intervention (exemple)',
+            'demo-seed/deliverable-plan.xlsx' => 'Planning de la mission (exemple)',
+            'demo-seed/deliverable-report.pdf' => 'Compte rendu de visite (exemple)',
+            'demo-seed/client-note.txt' => 'Note du client (exemple)',
         ];
 
         foreach ($demoFiles as $path => $content) {
@@ -32,12 +32,12 @@ class DemoProjectSeeder extends Seeder
         }
 
         $firstRequest = ServiceRequest::updateOrCreate(
-            ['reference' => 'SRQ-DEMO-1001'],
+            ['reference' => 'SRQ-K7M2Q4TB'],
             [
                 'client_id' => $client->id,
                 'service_type' => 'agriculture',
                 'title' => 'Diagnostic parcellaire et plan de culture',
-                'description' => 'Demande de démonstration pour tester le suivi projet, la messagerie et le téléchargement de livrables.',
+                'description' => 'Exploitation maraîchère de 4 hectares. Nous souhaitons un diagnostic des parcelles et un plan de culture pour la saison sèche, avec un calendrier d’irrigation.',
                 'priority' => 'high',
                 'status' => 'in_progress',
                 'assigned_expert_id' => $expert->id,
@@ -46,25 +46,25 @@ class DemoProjectSeeder extends Seeder
                     'demo-seed/project-report.pdf',
                     'demo-seed/contract-draft.docx',
                 ],
-                'status_notes' => 'Projet de test prêt pour la validation des jalons.',
+                'status_notes' => 'Visite de terrain réalisée. Le compte rendu est disponible dans les livrables de la première étape.',
                 'status_changed_at' => now(),
             ]
         );
 
         $secondRequest = ServiceRequest::updateOrCreate(
-            ['reference' => 'SRQ-DEMO-1002'],
+            ['reference' => 'SRQ-P3X8N6VD'],
             [
                 'client_id' => $client->id,
                 'service_type' => 'aquaculture',
                 'title' => 'Mise en place d’un suivi piscicole',
-                'description' => 'Deuxième demande de démonstration pour tester plusieurs statuts et différents fichiers.',
+                'description' => 'Deux étangs de 400 m² en production de tilapia. Nous voulons mettre en place un suivi de la qualité de l’eau et de l’alimentation.',
                 'priority' => 'normal',
                 'status' => 'reviewing',
                 'assigned_expert_id' => $expert->id,
                 'document_paths' => [
                     'demo-seed/request-brief.pdf',
                 ],
-                'status_notes' => 'En cours de revue technique.',
+                'status_notes' => 'Demande en cours d’analyse par notre équipe.',
                 'status_changed_at' => now(),
             ]
         );
@@ -73,7 +73,7 @@ class DemoProjectSeeder extends Seeder
             [
                 'service_request_id' => $firstRequest->id,
                 'title' => 'Cadrage initial',
-                'description' => 'Analyse du besoin, collecte des contraintes et planification.',
+                'description' => 'Entretien, collecte des documents existants et préparation de la visite.',
                 'status' => 'validated',
                 'due_date' => now()->addDays(5)->toDateString(),
                 'sort_order' => 1,
@@ -82,16 +82,25 @@ class DemoProjectSeeder extends Seeder
             [
                 'service_request_id' => $firstRequest->id,
                 'title' => 'Visite terrain',
-                'description' => 'Inspection et collecte des données terrain.',
+                'description' => 'Visite des parcelles, prélèvements de sol et relevé du système d’irrigation.',
                 'status' => 'in_progress',
                 'due_date' => now()->addDays(10)->toDateString(),
                 'sort_order' => 2,
                 'deliverable_paths' => ['demo-seed/deliverable-report.pdf'],
             ],
             [
+                'service_request_id' => $firstRequest->id,
+                'title' => 'Plan de culture',
+                'description' => 'Choix des cultures, calendrier et besoins en eau pour la saison sèche.',
+                'status' => 'planned',
+                'due_date' => now()->addDays(21)->toDateString(),
+                'sort_order' => 3,
+                'deliverable_paths' => [],
+            ],
+            [
                 'service_request_id' => $secondRequest->id,
                 'title' => 'Revue documentaire',
-                'description' => 'Lecture des documents et préparation du retour expert.',
+                'description' => 'En attente des relevés de température et d’oxygène des trois derniers mois.',
                 'status' => 'blocked',
                 'due_date' => now()->addDays(3)->toDateString(),
                 'sort_order' => 1,
@@ -111,13 +120,13 @@ class DemoProjectSeeder extends Seeder
             [
                 'service_request_id' => $firstRequest->id,
                 'sender_id' => $client->id,
-                'body' => 'Bonjour, je teste la messagerie interne avec la demande de démonstration.',
+                'body' => 'Bonjour, je vous transmets le plan des parcelles et les résultats de la dernière campagne.',
                 'attachment_path' => 'demo-seed/client-note.txt',
             ],
             [
                 'service_request_id' => $firstRequest->id,
                 'sender_id' => $expert->id,
-                'body' => 'Bonjour, le premier jalon est prêt. Vous pouvez consulter le livrable ci-joint.',
+                'body' => 'Merci. Le compte rendu de la visite est disponible dans la première étape. Je vous propose un échange jeudi pour en parler.',
                 'attachment_path' => 'demo-seed/deliverable-report.pdf',
             ],
         ] as $messageData) {
