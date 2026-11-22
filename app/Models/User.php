@@ -51,12 +51,36 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'preferences' => 'array',
+            'suspended_at' => 'datetime',
         ];
     }
+
+    public const ROLE_LABELS = ['client' => 'Client', 'expert' => 'Expert', 'admin' => 'Administrateur'];
 
     public function serviceRequests(): HasMany
     {
         return $this->hasMany(ServiceRequest::class, 'client_id');
+    }
+
+    public function assignedRequests(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class, 'assigned_expert_id');
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
+    }
+
+    /** Préférence d'e-mail ; activée tant que l'utilisateur ne l'a pas désactivée. */
+    public function wantsEmail(string $preference): bool
+    {
+        return (bool) ($this->preferences[$preference] ?? true);
+    }
+
+    public function roleLabel(): string
+    {
+        return self::ROLE_LABELS[$this->role] ?? ucfirst((string) $this->role);
     }
 
     public function isAdmin(): bool

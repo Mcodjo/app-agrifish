@@ -94,7 +94,7 @@ class ProjectAccessTest extends TestCase
             'description' => 'Une description de plus de vingt caractères.',
             'priority' => 'normal',
             'documents' => [UploadedFile::fake()->create('etude.pdf', 10, 'application/pdf')],
-        ])->assertRedirect(route('dashboard'));
+        ])->assertRedirect(route('projects.show', ServiceRequest::firstOrFail()));
 
         $project = ServiceRequest::firstOrFail();
         $path = $project->document_paths[0];

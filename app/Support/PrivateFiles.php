@@ -37,6 +37,17 @@ class PrivateFiles
         abort(404);
     }
 
+    public static function delete(?string $path): void
+    {
+        if (! is_string($path) || $path === '' || str_contains($path, '..')) {
+            return;
+        }
+
+        foreach ([self::DISK, self::LEGACY_DISK] as $disk) {
+            Storage::disk($disk)->delete($path);
+        }
+    }
+
     public static function deleteDirectory(string $directory): void
     {
         foreach ([self::DISK, self::LEGACY_DISK] as $disk) {

@@ -1,6 +1,17 @@
 @php
     $messages = [
         'service-request-created' => 'Votre demande a bien été envoyée. Notre équipe l’analyse et vous répond rapidement.',
+        'request-cancelled' => 'Demande annulée. L’équipe a été prévenue.',
+        'documents-added' => 'Documents ajoutés à la demande.',
+        'document-removed' => 'Document retiré.',
+        'milestone-moved' => 'Ordre des étapes mis à jour.',
+        'milestone-deleted' => 'Étape supprimée.',
+        'deliverable-removed' => 'Livrable retiré.',
+        'user-created' => 'Compte créé. Un lien pour choisir son mot de passe a été envoyé par e-mail.',
+        'user-updated' => 'Compte mis à jour.',
+        'user-suspended' => 'Compte suspendu : la personne ne peut plus se connecter.',
+        'user-reactivated' => 'Compte réactivé.',
+        'password-link-sent' => 'Lien de réinitialisation du mot de passe envoyé.',
         'message-sent' => 'Message envoyé.',
         'milestone-created' => 'Étape ajoutée.',
         'milestone-updated' => 'Étape mise à jour.',

@@ -82,6 +82,7 @@
                                     <a href="{{ route('dashboard') }}" class="block rounded-lg px-3 py-2 text-dark hover:bg-cream">Tableau de bord</a>
                                     @if($user->isAdmin())
                                         <a href="{{ route('admin.requests.index') }}" class="block rounded-lg px-3 py-2 text-dark hover:bg-cream">Gestion des demandes</a>
+                                        <a href="{{ route('admin.users.index') }}" class="block rounded-lg px-3 py-2 text-dark hover:bg-cream">Utilisateurs</a>
                                     @endif
                                     <a href="{{ route('profile.edit') }}" class="block rounded-lg px-3 py-2 text-dark hover:bg-cream">Mon profil</a>
                                     <form method="POST" action="{{ route('logout') }}">
@@ -113,6 +114,10 @@
                 <div class="flex flex-col gap-2 py-5">
                     @auth
                         <a href="{{ route('dashboard') }}" class="btn-primary">Mon espace</a>
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('admin.requests.index') }}" class="btn-soft">Gestion des demandes</a>
+                            <a href="{{ route('admin.users.index') }}" class="btn-soft">Utilisateurs</a>
+                        @endif
                         <a href="{{ route('profile.edit') }}" class="btn-soft">Mon profil</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf

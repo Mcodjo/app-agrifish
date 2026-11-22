@@ -28,8 +28,9 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
             'preferences' => ['nullable', 'array'],
-            'preferences.service_updates' => ['sometimes', 'boolean'],
+            'preferences.message_notifications' => ['sometimes', 'boolean'],
             'preferences.status_notifications' => ['sometimes', 'boolean'],
+            'preferences.request_notifications' => ['sometimes', 'boolean'],
             'preferences.newsletter' => ['sometimes', 'boolean'],
             'preferences.preferred_contact' => ['nullable', 'in:email,phone,whatsapp'],
         ];

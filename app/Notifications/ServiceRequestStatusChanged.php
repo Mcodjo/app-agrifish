@@ -26,10 +26,10 @@ class ServiceRequestStatusChanged extends Notification
             ->subject('Mise à jour de votre demande ' . $this->serviceRequest->reference)
             ->greeting('Bonjour ' . $notifiable->name . ',')
             ->line('Le statut de votre demande a changé.')
-            ->line('Référence: ' . $this->serviceRequest->reference)
-            ->line('Nouveau statut: ' . $this->serviceRequest->statusLabel())
-            ->lineWhen((bool) $this->serviceRequest->status_notes, 'Note: ' . $this->serviceRequest->status_notes)
+            ->line('Référence : ' . $this->serviceRequest->reference)
+            ->line('Nouveau statut : ' . $this->serviceRequest->statusLabel())
+            ->lineIf((bool) $this->serviceRequest->status_notes, 'Note de l’équipe : ' . $this->serviceRequest->status_notes)
             ->action('Voir votre projet', route('projects.show', $this->serviceRequest))
-            ->line('Merci de faire confiance à AgriFish.');
+            ->salutation('L’équipe AgriFish');
     }
 }

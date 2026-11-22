@@ -139,5 +139,35 @@ class DemoProjectSeeder extends Seeder
                 $messageData
             );
         }
-    }
+    
+        // Historique de démonstration, recréé à chaque exécution.
+        $admin = User::where('role', 'admin')->first();
+
+        foreach ([
+            [$firstRequest, [
+                ['created', $client, null, 'new', null, 12],
+                ['status', $admin, 'new', 'reviewing', null, 11],
+                ['assigned', $admin, null, null, $expert->name, 11],
+                ['status', $admin, 'reviewing', 'in_progress', null, 9],
+            ]],
+            [$secondRequest, [
+                ['created', $client, null, 'new', null, 2],
+                ['status', $admin, 'new', 'reviewing', null, 1],
+            ]],
+        ] as [$serviceRequest, $events]) {
+            $serviceRequest->events()->delete();
+
+            $serviceRequest->forceFill(['created_at' => now()->subDays($events[0][5])->setTime(9, 30)])->save();
+
+            foreach ($events as [$type, $user, $from, $to, $details, $daysAgo]) {
+                $serviceRequest->events()->create([
+                    'type' => $type,
+                    'user_id' => $user?->id,
+                    'from_status' => $from,
+                    'to_status' => $to,
+                    'details' => $details,
+                ])->forceFill(['created_at' => now()->subDays($daysAgo)->setTime(9, 30)])->save();
+            }
+        }
+}
 }

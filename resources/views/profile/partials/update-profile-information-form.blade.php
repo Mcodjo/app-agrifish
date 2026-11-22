@@ -49,17 +49,29 @@
             @endif
         </div>
 
+        <fieldset>
+            <legend class="field-label">E-mails de suivi</legend>
+            @php
+                $emailPrefs = ['message_notifications' => 'À chaque nouveau message sur un projet'];
+                if (! $user->isExpert()) {
+                    $emailPrefs['status_notifications'] = 'À chaque changement de statut de mes demandes';
+                }
+                if ($user->isAdmin()) {
+                    $emailPrefs['request_notifications'] = 'À chaque nouvelle demande déposée';
+                }
+            @endphp
+            <div class="mt-1 grid gap-3 sm:grid-cols-2">
+                @foreach($emailPrefs as $key => $label)
+                    <label class="flex items-center gap-3 rounded-[10px] border border-line px-4 py-3 text-sm text-dark">
+                        <input type="hidden" name="preferences[{{ $key }}]" value="0">
+                        <input type="checkbox" name="preferences[{{ $key }}]" value="1" class="h-4 w-4 rounded border-line text-primary-800 focus:ring-primary-500" @checked(old('preferences.'.$key, $user->wantsEmail($key)))>
+                        {{ $label }}
+                    </label>
+                @endforeach
+            </div>
+        </fieldset>
+
         <div class="grid gap-4 sm:grid-cols-2">
-            <label class="flex items-center gap-3 rounded-[10px] border border-line px-4 py-3 text-sm text-dark">
-                <input type="hidden" name="preferences[service_updates]" value="0">
-                <input type="checkbox" name="preferences[service_updates]" value="1" class="h-4 w-4 rounded border-line text-primary-800 focus:ring-primary-500" {{ old('preferences.service_updates', data_get($user->preferences, 'service_updates')) ? 'checked' : '' }}>
-                Nouvelles de mes projets
-            </label>
-            <label class="flex items-center gap-3 rounded-[10px] border border-line px-4 py-3 text-sm text-dark">
-                <input type="hidden" name="preferences[status_notifications]" value="0">
-                <input type="checkbox" name="preferences[status_notifications]" value="1" class="h-4 w-4 rounded border-line text-primary-800 focus:ring-primary-500" {{ old('preferences.status_notifications', data_get($user->preferences, 'status_notifications')) ? 'checked' : '' }}>
-                E-mail à chaque changement de statut
-            </label>
             <label class="flex items-center gap-3 rounded-[10px] border border-line px-4 py-3 text-sm text-dark">
                 <input type="hidden" name="preferences[newsletter]" value="0">
                 <input type="checkbox" name="preferences[newsletter]" value="1" class="h-4 w-4 rounded border-line text-primary-800 focus:ring-primary-500" {{ old('preferences.newsletter', data_get($user->preferences, 'newsletter')) ? 'checked' : '' }}>

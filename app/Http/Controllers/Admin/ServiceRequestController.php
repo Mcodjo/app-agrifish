@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Notifications\ProjectAssigned;
 use App\Notifications\ServiceRequestStatusChanged;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,6 +37,8 @@ class ServiceRequestController extends Controller
 
         $experts = User::query()
             ->where('role', 'expert')
+            ->whereNull('suspended_at')
+            ->withCount(['assignedRequests as open_projects_count' => fn ($query) => $query->whereNotIn('status', ServiceRequest::CLOSED_STATUSES)])
             ->orderBy('name')
             ->get();
 
@@ -54,15 +57,19 @@ class ServiceRequestController extends Controller
         $validated = $request->validate([
             'status' => ['required', Rule::in(array_keys(ServiceRequest::STATUSES))],
             // Uniquement des utilisateurs ayant le rôle expert.
-            'assigned_expert_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('role', 'expert')],
+            'assigned_expert_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('role', 'expert')->whereNull('suspended_at')],
             'status_notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $statusChanged = $serviceRequest->status !== $validated['status'];
+        $previousStatus = $serviceRequest->status;
+        $previousExpert = $serviceRequest->assigned_expert_id;
+        $newExpert = isset($validated['assigned_expert_id']) ? (int) $validated['assigned_expert_id'] : null;
+        $statusChanged = $previousStatus !== $validated['status'];
+        $expertChanged = $previousExpert !== $newExpert;
 
         $serviceRequest->fill([
             'status' => $validated['status'],
-            'assigned_expert_id' => $validated['assigned_expert_id'] ?? null,
+            'assigned_expert_id' => $newExpert,
             'status_notes' => $validated['status_notes'] ?? null,
         ]);
 
@@ -71,11 +78,31 @@ class ServiceRequestController extends Controller
         }
 
         $serviceRequest->save();
+        $serviceRequest->load(['client', 'assignedExpert']);
+
+        if ($statusChanged) {
+            $serviceRequest->record('status', $request->user(), [
+                'from_status' => $previousStatus,
+                'to_status' => $serviceRequest->status,
+            ]);
+        }
+
+        if ($expertChanged) {
+            $serviceRequest->record($newExpert ? 'assigned' : 'unassigned', $request->user(), [
+                'details' => $serviceRequest->assignedExpert?->name,
+            ]);
+
+            $expert = $serviceRequest->assignedExpert;
+
+            if ($expert && $expert->id !== $request->user()->id && ! $expert->isSuspended()) {
+                $expert->notify(new ProjectAssigned($serviceRequest));
+            }
+        }
 
         $client = $serviceRequest->client;
 
         // Notifier seulement si le statut change et si le client accepte ces e-mails.
-        if ($statusChanged && $client && ($client->preferences['status_notifications'] ?? true)) {
+        if ($statusChanged && $client && $client->wantsEmail('status_notifications')) {
             $client->notify(new ServiceRequestStatusChanged($serviceRequest));
         }
 

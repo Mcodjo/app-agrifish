@@ -19,6 +19,25 @@ return [
         'delai' => '24 heures ouvrées',
     ],
 
+    // Mentions légales. Une ligne vide n'est pas affichée sur le site.
+    'legal' => [
+        'raison_sociale' => env('LEGAL_RAISON_SOCIALE') ?: 'AgriFish',
+        'forme' => env('LEGAL_FORME') ?: null,
+        'capital' => env('LEGAL_CAPITAL') ?: null,
+        'siege' => env('LEGAL_SIEGE') ?: null,
+        'immatriculation' => env('LEGAL_IMMATRICULATION') ?: null,
+        'identifiant_fiscal' => env('LEGAL_IDENTIFIANT_FISCAL') ?: null,
+        'directeur_publication' => env('LEGAL_DIRECTEUR_PUBLICATION') ?: null,
+        'email_donnees' => env('LEGAL_EMAIL_DONNEES') ?: (env('SITE_EMAIL') ?: 'contact@agrifish.africa'),
+        'hebergeur' => [
+            'nom' => env('HEBERGEUR_NOM') ?: null,
+            'adresse' => env('HEBERGEUR_ADRESSE') ?: null,
+            'site' => env('HEBERGEUR_SITE') ?: null,
+            'telephone' => env('HEBERGEUR_TELEPHONE') ?: null,
+        ],
+        'mise_a_jour' => env('LEGAL_MISE_A_JOUR') ?: '22 novembre 2026',
+    ],
+
     'chiffres' => [
         ['valeur' => '12', 'libelle' => 'pays d’intervention'],
         ['valeur' => '120+', 'libelle' => 'producteurs accompagnés'],

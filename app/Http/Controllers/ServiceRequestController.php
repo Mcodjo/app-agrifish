@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\ServiceRequest;
+use App\Models\User;
+use App\Notifications\ServiceRequestActivity;
 use App\Support\PrivateFiles;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 
 class ServiceRequestController extends Controller
@@ -49,6 +51,13 @@ class ServiceRequestController extends Controller
             'document_paths' => $documentPaths,
         ]);
 
-        return redirect()->route('dashboard')->with('status', 'service-request-created');
+        $requestModel->record('created', $request->user(), ['to_status' => 'new']);
+
+        $admins = User::query()->where('role', 'admin')->whereNull('suspended_at')->get()
+            ->filter(fn (User $admin) => $admin->wantsEmail('request_notifications'));
+
+        Notification::send($admins, new ServiceRequestActivity($requestModel, 'created'));
+
+        return redirect()->route('projects.show', $requestModel)->with('status', 'service-request-created');
     }
 }

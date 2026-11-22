@@ -86,7 +86,7 @@
                         <select id="expert-{{ $requestItem->id }}" name="assigned_expert_id" class="field-input">
                             <option value="">Non assigné</option>
                             @foreach($experts as $expert)
-                                <option value="{{ $expert->id }}" @selected((string) $requestItem->assigned_expert_id === (string) $expert->id)>{{ $expert->name }}</option>
+                                <option value="{{ $expert->id }}" @selected((string) $requestItem->assigned_expert_id === (string) $expert->id)>{{ $expert->name }} ({{ $expert->open_projects_count }} en cours)</option>
                             @endforeach
                         </select>
                     </div>

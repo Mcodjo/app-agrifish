@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PageController;
@@ -32,6 +33,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/projets/{serviceRequest}/messages', [ProjectController::class, 'sendMessage'])
         ->middleware('throttle:30,1')
         ->name('projects.messages.store');
+    Route::post('/projets/{serviceRequest}/annuler', [ProjectController::class, 'cancel'])
+        ->name('projects.cancel');
+    Route::post('/projets/{serviceRequest}/documents', [ProjectController::class, 'addDocuments'])
+        ->middleware('throttle:10,1')
+        ->name('projects.documents.store');
+    Route::delete('/projets/{serviceRequest}/documents/{documentIndex}', [ProjectController::class, 'removeDocument'])
+        ->whereNumber('documentIndex')
+        ->name('projects.documents.destroy');
     Route::get('/projets/{serviceRequest}/documents/{documentIndex}', [ProjectController::class, 'downloadDocument'])
         ->whereNumber('documentIndex')
         ->name('projects.documents.download');
@@ -58,11 +67,24 @@ Route::middleware('auth')->group(function () use ($profilePath) {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/demandes', [\App\Http\Controllers\Admin\ServiceRequestController::class, 'index'])->name('requests.index');
     Route::patch('/demandes/{serviceRequest}', [\App\Http\Controllers\Admin\ServiceRequestController::class, 'update'])->name('requests.update');
+    Route::get('/utilisateurs', [UserController::class, 'index'])->name('users.index');
+    Route::get('/utilisateurs/nouveau', [UserController::class, 'create'])->name('users.create');
+    Route::post('/utilisateurs', [UserController::class, 'store'])->name('users.store');
+    Route::patch('/utilisateurs/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::post('/utilisateurs/{user}/suspendre', [UserController::class, 'toggleSuspension'])->name('users.suspension');
+    Route::post('/utilisateurs/{user}/lien-mot-de-passe', [UserController::class, 'sendPasswordLink'])
+        ->middleware('throttle:6,1')
+        ->name('users.password-link');
 });
 
 Route::middleware(['auth', 'role:admin,expert'])->group(function () {
     Route::post('/projets/{serviceRequest}/jalons', [\App\Http\Controllers\Expert\ProjectMilestoneController::class, 'store'])->name('projects.milestones.store');
     Route::patch('/jalons/{projectMilestone}', [\App\Http\Controllers\Expert\ProjectMilestoneController::class, 'update'])->name('projects.milestones.update');
+    Route::post('/jalons/{projectMilestone}/deplacer', [\App\Http\Controllers\Expert\ProjectMilestoneController::class, 'move'])->name('projects.milestones.move');
+    Route::delete('/jalons/{projectMilestone}', [\App\Http\Controllers\Expert\ProjectMilestoneController::class, 'destroy'])->name('projects.milestones.destroy');
+    Route::delete('/jalons/{projectMilestone}/livrables/{deliverableIndex}', [\App\Http\Controllers\Expert\ProjectMilestoneController::class, 'removeDeliverable'])
+        ->whereNumber('deliverableIndex')
+        ->name('projects.milestones.deliverables.destroy');
 });
 
 // Pages légales

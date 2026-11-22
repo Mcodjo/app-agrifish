@@ -24,23 +24,50 @@ class ServiceRequestPolicy
         return $serviceRequest->client_id === $user->id;
     }
 
-    /**
-     * Envoyer un message sur un projet.
-     */
     public function message(User $user, ServiceRequest $serviceRequest): bool
     {
-        return $this->view($user, $serviceRequest);
+        return $this->view($user, $serviceRequest) && $serviceRequest->status !== 'cancelled';
     }
 
     /**
-     * Créer ou modifier des jalons et déposer des livrables.
+     * Créer, modifier, réordonner ou supprimer des étapes et leurs livrables.
      */
     public function manageMilestones(User $user, ServiceRequest $serviceRequest): bool
     {
+        if ($serviceRequest->status === 'cancelled') {
+            return false;
+        }
+
         if ($user->isAdmin()) {
             return true;
         }
 
         return $user->isExpert() && $serviceRequest->assigned_expert_id === $user->id;
+    }
+
+    /**
+     * Le client annule sa demande tant que le travail n'a pas commencé.
+     */
+    public function cancel(User $user, ServiceRequest $serviceRequest): bool
+    {
+        return $serviceRequest->client_id === $user->id && $serviceRequest->isEditableByClient();
+    }
+
+    public function addDocuments(User $user, ServiceRequest $serviceRequest): bool
+    {
+        if ($serviceRequest->isClosed()) {
+            return false;
+        }
+
+        return $user->isAdmin() || $serviceRequest->client_id === $user->id;
+    }
+
+    public function removeDocuments(User $user, ServiceRequest $serviceRequest): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $serviceRequest->client_id === $user->id && $serviceRequest->isEditableByClient();
     }
 }

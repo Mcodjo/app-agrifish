@@ -33,12 +33,13 @@ class ProfileController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
-            'preferences' => [
-                'service_updates' => (bool) ($validated['preferences']['service_updates'] ?? false),
+            'preferences' => array_merge($request->user()->preferences ?? [], [
+                'message_notifications' => (bool) ($validated['preferences']['message_notifications'] ?? false),
                 'status_notifications' => (bool) ($validated['preferences']['status_notifications'] ?? false),
+                'request_notifications' => (bool) ($validated['preferences']['request_notifications'] ?? false),
                 'newsletter' => (bool) ($validated['preferences']['newsletter'] ?? false),
                 'preferred_contact' => $validated['preferences']['preferred_contact'] ?? 'email',
-            ],
+            ]),
         ]);
 
         if ($request->user()->isDirty('email')) {

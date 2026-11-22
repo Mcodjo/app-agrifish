@@ -33,6 +33,26 @@
               :title="$serviceRequest->title">
     <x-slot:actions>
         <x-status-badge :status="$serviceRequest->status" size="lg" />
+        @if($canCancel)
+            <div x-data="{ open: {{ $errors->has('reason') ? 'true' : 'false' }} }">
+                <button type="button" @click="open = true" class="btn-outline !py-2">Annuler la demande</button>
+                <div x-show="open" x-cloak x-transition.opacity class="fixed inset-0 z-[70] flex items-center justify-center bg-dark/50 px-4" @keydown.escape.window="open = false">
+                    <form method="POST" action="{{ route('projects.cancel', $serviceRequest) }}" @click.outside="open = false"
+                          class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="cancel-title">
+                        @csrf
+                        <h2 id="cancel-title" class="text-lg font-semibold text-dark">Annuler cette demande ?</h2>
+                        <p class="mt-2 text-sm leading-6 text-muted">L’équipe AgriFish sera prévenue. La demande restera visible dans votre espace, mais ne sera plus traitée.</p>
+                        <label for="cancel-reason" class="field-label mt-5">Motif (facultatif)</label>
+                        <textarea id="cancel-reason" name="reason" rows="3" maxlength="500" class="field-input" placeholder="Ex : le projet est reporté à la saison prochaine.">{{ old('reason') }}</textarea>
+                        @error('reason')<p class="field-error">{{ $message }}</p>@enderror
+                        <div class="mt-5 flex justify-end gap-2">
+                            <button type="button" @click="open = false" class="btn-outline">Retour</button>
+                            <button type="submit" class="btn bg-red-700 text-white hover:bg-red-800">Confirmer l’annulation</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endif
     </x-slot:actions>
 
     <div class="mt-8 grid gap-3 lg:grid-cols-[1.3fr_1fr]">
@@ -76,6 +96,11 @@
     <div class="grid items-start gap-6 lg:grid-cols-[1.25fr_1fr]">
 
         <div class="space-y-6">
+            @if($serviceRequest->status === 'cancelled')
+                <div class="rounded-xl border border-line bg-white p-4 text-sm text-muted">
+                    Cette demande a été annulée{{ $serviceRequest->status_changed_at ? ' le '.$serviceRequest->status_changed_at->format('d/m/Y') : '' }}. Pour relancer le projet, <a href="{{ route('requests.create') }}" class="font-medium text-dark underline underline-offset-2">déposez une nouvelle demande</a>.
+                </div>
+            @endif
             @if($serviceRequest->status_notes)
                 <div class="flex gap-3 rounded-xl border border-gold/30 bg-gold/10 p-4 text-sm text-dark">
                     <svg class="mt-0.5 h-5 w-5 shrink-0 text-gold-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -135,20 +160,53 @@
                                     <div class="mt-3 flex flex-wrap gap-2">
                                         @foreach($milestone->deliverable_paths as $index => $path)
                                             @php [$ext, $color] = $fileMeta($path); @endphp
-                                            <a href="{{ route('projects.milestones.download', [$milestone, $index]) }}" class="inline-flex items-center gap-2 rounded-lg border border-line bg-white py-1.5 pl-1.5 pr-3 text-sm font-medium text-dark transition hover:border-dark/30">
-                                                <span class="rounded-md px-1.5 py-0.5 text-[10px] font-bold {{ $color }}">{{ $ext }}</span>
-                                                Livrable {{ $index + 1 }}
-                                                <svg class="h-4 w-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                            </a>
+                                            <span class="inline-flex items-center rounded-lg border border-line bg-white text-sm font-medium text-dark transition hover:border-dark/30">
+                                                <a href="{{ route('projects.milestones.download', [$milestone, $index]) }}" class="inline-flex items-center gap-2 py-1.5 pl-1.5 pr-3">
+                                                    <span class="rounded-md px-1.5 py-0.5 text-[10px] font-bold {{ $color }}">{{ $ext }}</span>
+                                                    Livrable {{ $index + 1 }}
+                                                    <svg class="h-4 w-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                </a>
+                                                @if($canManageMilestones)
+                                                    <form method="POST" action="{{ route('projects.milestones.deliverables.destroy', [$milestone, $index]) }}" onsubmit="return confirm('Retirer ce livrable ?')" class="border-l border-line">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="flex h-8 w-8 items-center justify-center text-muted hover:text-red-700" aria-label="Retirer le livrable {{ $index + 1 }}">
+                                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </span>
                                         @endforeach
                                     </div>
                                 @endif
 
                                 @if($canManageMilestones)
-                                    <button type="button" @click="edit = !edit" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary-800 hover:text-primary-dark">
-                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.41-9.41a2 2 0 112.83 2.83L11.83 15H9v-2.83l8.59-8.58z"/></svg>
-                                        <span x-text="edit ? 'Annuler' : 'Mettre à jour'"></span>
-                                    </button>
+                                    <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                                        <button type="button" @click="edit = !edit" class="inline-flex items-center gap-1 text-sm font-medium text-primary-800 hover:text-primary-dark">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.41-9.41a2 2 0 112.83 2.83L11.83 15H9v-2.83l8.59-8.58z"/></svg>
+                                            <span x-text="edit ? 'Annuler' : 'Mettre à jour'"></span>
+                                        </button>
+                                        @if($serviceRequest->milestones->count() > 1)
+                                            <span class="inline-flex items-center gap-1">
+                                                @foreach(['up' => ['Monter', 'M5 15l7-7 7 7'], 'down' => ['Descendre', 'M19 9l-7 7-7-7']] as $direction => [$moveLabel, $icon])
+                                                    @php $disabled = $direction === 'up' ? $loop->parent->first : $loop->parent->last; @endphp
+                                                    <form method="POST" action="{{ route('projects.milestones.move', $milestone) }}">
+                                                        @csrf
+                                                        <input type="hidden" name="direction" value="{{ $direction }}">
+                                                        <button type="submit" @disabled($disabled) title="{{ $moveLabel }}" aria-label="{{ $moveLabel }} l’étape {{ $milestone->title }}"
+                                                                class="flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted transition hover:border-dark/30 hover:text-dark disabled:cursor-not-allowed disabled:opacity-40">
+                                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}"/></svg>
+                                                        </button>
+                                                    </form>
+                                                @endforeach
+                                            </span>
+                                        @endif
+                                        <form method="POST" action="{{ route('projects.milestones.destroy', $milestone) }}" onsubmit="return confirm('Supprimer l’étape « {{ addslashes($milestone->title) }} » et ses livrables ?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-sm font-medium text-red-700 hover:text-red-800">Supprimer</button>
+                                        </form>
+                                    </div>
 
                                     <form x-show="edit" x-cloak x-transition method="POST" action="{{ route('projects.milestones.update', $milestone) }}" enctype="multipart/form-data"
                                           class="mt-3 space-y-4 rounded-xl bg-cream p-4">
@@ -245,20 +303,45 @@
                 <ul class="mt-4 divide-y divide-line">
                     @forelse($serviceRequest->document_paths ?? [] as $index => $path)
                         @php [$ext, $color] = $fileMeta($path); @endphp
-                        <li>
-                            <a href="{{ route('projects.documents.download', [$serviceRequest, $index]) }}" class="group flex items-center gap-3 py-2.5">
+                        <li class="flex items-center gap-2">
+                            <a href="{{ route('projects.documents.download', [$serviceRequest, $index]) }}" class="group flex flex-1 items-center gap-3 py-2.5">
                                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold {{ $color }}">{{ $ext }}</span>
                                 <span class="flex-1 text-sm font-medium text-dark group-hover:underline">Document {{ $index + 1 }}</span>
                                 <svg class="h-5 w-5 text-muted group-hover:text-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             </a>
+                            @if($canRemoveDocuments)
+                                <form method="POST" action="{{ route('projects.documents.destroy', [$serviceRequest, $index]) }}" onsubmit="return confirm('Retirer ce document de la demande ?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-red-50 hover:text-red-700" aria-label="Retirer le document {{ $index + 1 }}">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.87 12.14A2 2 0 0116.14 21H7.86a2 2 0 01-1.99-1.86L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </form>
+                            @endif
                         </li>
                     @empty
                         <li class="py-3 text-sm text-muted">Aucun document joint à la demande.</li>
                     @endforelse
                 </ul>
+                @if($canAddDocuments && count($serviceRequest->document_paths ?? []) < 10)
+                    <form method="POST" action="{{ route('projects.documents.store', $serviceRequest) }}" enctype="multipart/form-data"
+                          x-data="{ open: {{ $errors->has('documents') || $errors->has('documents.*') ? 'true' : 'false' }} }" class="mt-4 border-t border-line pt-4">
+                        @csrf
+                        <button type="button" x-show="!open" @click="open = true" class="text-sm font-medium text-primary-800 hover:text-primary-dark">+ Ajouter des documents</button>
+                        <div x-show="open" x-cloak class="space-y-3">
+                            <x-file-input name="documents[]" id="add-documents" multiple compact hint="PDF, Word, Excel ou image, 5 Mo max" />
+                            @error('documents')<p class="field-error">{{ $message }}</p>@enderror
+                            @error('documents.*')<p class="field-error">{{ $message }}</p>@enderror
+                            <div class="flex justify-end gap-2">
+                                <button type="button" @click="open = false" class="btn-outline !py-2">Annuler</button>
+                                <button type="submit" class="btn-primary !py-2">Envoyer</button>
+                            </div>
+                        </div>
+                    </form>
+                @endif
             </div>
 
-            <div class="card flex flex-col !p-0">
+            <div id="messagerie" class="card flex scroll-mt-28 flex-col !p-0">
                 <div class="border-b border-line px-5 py-4 sm:px-6">
                     <h2 class="text-[17px] font-semibold text-dark">Messagerie</h2>
                     <p class="text-xs text-muted">Échanges entre le client et l’expert du projet</p>
@@ -290,6 +373,9 @@
                     @endforelse
                 </div>
 
+                @if($serviceRequest->status === 'cancelled')
+                    <p class="border-t border-line p-4 text-sm text-muted sm:p-5">La messagerie est fermée pour une demande annulée.</p>
+                @else
                 <form method="POST" action="{{ route('projects.messages.store', $serviceRequest) }}" enctype="multipart/form-data"
                       x-data="{ sending: false }" @submit="sending = true" class="space-y-3 border-t border-line p-4 sm:p-5">
                     @csrf
@@ -306,6 +392,30 @@
                         </button>
                     </div>
                 </form>
+                @endif
+            </div>
+
+            <div class="card">
+                <h2 class="text-[17px] font-semibold text-dark">Historique</h2>
+                <ol class="mt-4 space-y-4">
+                    @forelse($serviceRequest->events->take(12) as $event)
+                        <li class="flex gap-3 text-sm">
+                            <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full {{ $event->type === 'cancelled' ? 'bg-red-500' : ($event->type === 'created' ? 'bg-primary-500' : 'bg-gold') }}" aria-hidden="true"></span>
+                            <div class="min-w-0">
+                                <p class="font-medium text-dark">{{ $event->summary() }}</p>
+                                @if($event->type === 'cancelled' && $event->details)
+                                    <p class="mt-0.5 text-muted">« {{ $event->details }} »</p>
+                                @endif
+                                <p class="mt-0.5 text-xs text-muted">
+                                    <time datetime="{{ $event->created_at->toIso8601String() }}">{{ $event->created_at->translatedFormat('d M Y à H:i') }}</time>
+                                    @if($event->user) · {{ $event->user->id === $me->id ? 'vous' : $event->user->name }}@endif
+                                </p>
+                            </div>
+                        </li>
+                    @empty
+                        <li class="text-sm text-muted">Demande déposée le {{ $serviceRequest->created_at->translatedFormat('d M Y') }}.</li>
+                    @endforelse
+                </ol>
             </div>
         </div>
     </div>

@@ -18,7 +18,7 @@ class DemoUsersSeeder extends Seeder
         $password = Hash::make(env('DEMO_USER_PASSWORD') ?: 'Password123!');
 
         $preferences = [
-            'service_updates' => true,
+            'message_notifications' => true,
             'status_notifications' => true,
             'newsletter' => false,
             'preferred_contact' => 'email',

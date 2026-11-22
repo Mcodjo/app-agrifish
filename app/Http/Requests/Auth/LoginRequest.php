@@ -50,6 +50,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::user()?->isSuspended()) {
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Ce compte est suspendu. Contactez AgriFish pour plus d’informations.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
