@@ -31,6 +31,8 @@ class ProfileUpdateRequest extends FormRequest
             'preferences.message_notifications' => ['sometimes', 'boolean'],
             'preferences.status_notifications' => ['sometimes', 'boolean'],
             'preferences.request_notifications' => ['sometimes', 'boolean'],
+            'preferences.order_notifications' => ['sometimes', 'boolean'],
+            'preferences.stock_notifications' => ['sometimes', 'boolean'],
             'preferences.newsletter' => ['sometimes', 'boolean'],
             'preferences.preferred_contact' => ['nullable', 'in:email,phone,whatsapp'],
         ];

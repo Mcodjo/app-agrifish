@@ -37,6 +37,8 @@ class ProfileController extends Controller
                 'message_notifications' => (bool) ($validated['preferences']['message_notifications'] ?? false),
                 'status_notifications' => (bool) ($validated['preferences']['status_notifications'] ?? false),
                 'request_notifications' => (bool) ($validated['preferences']['request_notifications'] ?? false),
+                'order_notifications' => (bool) ($validated['preferences']['order_notifications'] ?? false),
+                'stock_notifications' => (bool) ($validated['preferences']['stock_notifications'] ?? false),
                 'newsletter' => (bool) ($validated['preferences']['newsletter'] ?? false),
                 'preferred_contact' => $validated['preferences']['preferred_contact'] ?? 'email',
             ]),

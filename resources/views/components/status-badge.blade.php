@@ -11,6 +11,16 @@
         'completed' => 'bg-emerald-50 text-emerald-700 ring-emerald-200',
         'closed' => 'bg-gray-100 text-gray-600 ring-gray-200',
         'cancelled' => 'bg-white text-gray-500 ring-gray-200',
+        // Commandes
+        'pending_payment' => 'bg-amber-50 text-amber-800 ring-amber-200',
+        'paid' => 'bg-sky-50 text-sky-700 ring-sky-200',
+        'preparing' => 'bg-indigo-50 text-indigo-700 ring-indigo-200',
+        'ready' => 'bg-primary-50 text-primary-700 ring-primary-200',
+        'refunded' => 'bg-gray-100 text-gray-600 ring-gray-200',
+        // Avis
+        'pending' => 'bg-amber-50 text-amber-800 ring-amber-200',
+        'approved' => 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+        'rejected' => 'bg-gray-100 text-gray-600 ring-gray-200',
         // Étapes
         'planned' => 'bg-gray-100 text-gray-700 ring-gray-200',
         'validated' => 'bg-emerald-50 text-emerald-700 ring-emerald-200',
@@ -19,7 +29,7 @@
     $dots = [
         'new' => 'bg-sky-500', 'reviewing' => 'bg-amber-500', 'assigned' => 'bg-indigo-500',
         'in_progress' => 'bg-primary', 'waiting_client' => 'bg-orange-500', 'completed' => 'bg-emerald-500',
-        'closed' => 'bg-gray-400', 'cancelled' => 'bg-gray-300', 'planned' => 'bg-gray-400', 'validated' => 'bg-emerald-500', 'blocked' => 'bg-red-500',
+        'closed' => 'bg-gray-400', 'cancelled' => 'bg-gray-300', 'pending_payment' => 'bg-amber-500', 'paid' => 'bg-sky-500', 'preparing' => 'bg-indigo-500', 'ready' => 'bg-primary', 'refunded' => 'bg-gray-400', 'pending' => 'bg-amber-500', 'approved' => 'bg-emerald-500', 'rejected' => 'bg-gray-400', 'planned' => 'bg-gray-400', 'validated' => 'bg-emerald-500', 'blocked' => 'bg-red-500',
     ];
     $label ??= \App\Models\ServiceRequest::STATUSES[$status] ?? ucfirst(str_replace('_', ' ', $status));
     $sizeClass = $size === 'lg' ? 'px-3 py-1.5 text-sm' : 'px-2.5 py-1 text-xs';

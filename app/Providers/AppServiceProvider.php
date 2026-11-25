@@ -2,22 +2,44 @@
 
 namespace App\Providers;
 
+use App\Services\Shop\CartService;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Throwable;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->scoped(CartService::class);
     }
 
     public function boot(): void
     {
         Paginator::defaultView('vendor.pagination.agrifish');
+
+        Event::listen(Login::class, function (Login $event): void {
+            app(CartService::class)->mergeGuestCartInto($event->user);
+            $event->user->claimGuestOrders();
+        });
+
+        Event::listen(Verified::class, fn (Verified $event) => $event->user->claimGuestOrders());
+
+        // Nombre d'articles du panier, affiché dans l'en-tête du site.
+        View::composer('layouts.app', function ($view): void {
+            try {
+                $view->with('cartCount', app(CartService::class)->count());
+            } catch (Throwable) {
+                $view->with('cartCount', 0);
+            }
+        });
 
         ResetPassword::toMailUsing(function (object $notifiable, string $token): MailMessage {
             $url = route('password.reset', ['token' => $token, 'email' => $notifiable->getEmailForPasswordReset()]);

@@ -1,14 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.espace')
 
 @section('title', 'Gestion des demandes')
-@section('espace', true)
 
 @section('content')
-<x-app-header :back="route('dashboard')" back-label="Tableau de bord" eyebrow="Administration"
+<x-espace.header :back="route('dashboard')" back-label="Vue d’ensemble" eyebrow="Administration"
               title="Gestion des demandes"
               subtitle="Analysez les nouvelles demandes, assignez un expert et tenez le client informé." />
 
-<section class="max-w-content px-site py-10 lg:py-12">
+<section class="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:py-10">
     <div class="space-y-4">
 
         {{-- Filtres --}}

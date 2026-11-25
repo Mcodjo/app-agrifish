@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Shop\Address;
+use App\Models\Shop\Order;
+use App\Models\Shop\ProductReview;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    public const ROLES = ['client', 'expert', 'admin'];
+    public const ROLES = ['client', 'expert', 'manager', 'admin'];
 
     /**
      * The attributes that are mass assignable.
@@ -55,7 +58,7 @@ class User extends Authenticatable
         ];
     }
 
-    public const ROLE_LABELS = ['client' => 'Client', 'expert' => 'Expert', 'admin' => 'Administrateur'];
+    public const ROLE_LABELS = ['client' => 'Client', 'expert' => 'Expert', 'manager' => 'Gestionnaire boutique', 'admin' => 'Administrateur'];
 
     public function serviceRequests(): HasMany
     {
@@ -91,5 +94,46 @@ class User extends Authenticatable
     public function isExpert(): bool
     {
         return $this->role === 'expert';
+    }
+
+    public function isManager(): bool
+    {
+        return $this->role === 'manager';
+    }
+
+    public function canManageShop(): bool
+    {
+        return in_array($this->role, ['admin', 'manager'], true);
+    }
+
+    /** Les comptes qui gèrent la plateforme se connectent avec un code reçu par e-mail. */
+    public function requiresTwoFactor(): bool
+    {
+        return $this->canManageShop();
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class)->latest();
+    }
+
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(Address::class)->orderByDesc('is_default')->orderBy('id');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /** Rattache les commandes passées sans compte avec la même adresse e-mail, une fois celle-ci confirmée. */
+    public function claimGuestOrders(): int
+    {
+        if (! $this->hasVerifiedEmail()) {
+            return 0;
+        }
+
+        return Order::query()->whereNull('user_id')->where('email', $this->email)->update(['user_id' => $this->id]);
     }
 }

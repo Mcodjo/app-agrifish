@@ -1,230 +1,211 @@
-@extends('layouts.app')
+@extends('layouts.espace')
 
-@section('title', 'Mon espace')
-@section('espace', true)
+@section('title', 'Vue d’ensemble')
 
 @php
-    $copy = [
-        'client' => ['eyebrow' => 'Espace client', 'subtitle' => 'L’avancement de vos projets, vos documents et vos échanges avec nos experts.', 'list' => 'Mes projets'],
-        'expert' => ['eyebrow' => 'Espace expert', 'subtitle' => 'Les projets qui vous sont assignés : étapes, livrables et échanges avec les clients.', 'list' => 'Projets assignés'],
-        'admin' => ['eyebrow' => 'Administration', 'subtitle' => 'Toutes les demandes clients et leur avancement.', 'list' => 'Toutes les demandes'],
-    ][$role];
     $firstName = explode(' ', auth()->user()->name)[0];
     $progressOf = function ($item) {
         $total = $item->milestones->count();
         return $total ? (int) round($item->milestones->whereIn('status', ['validated', 'completed'])->count() / $total * 100) : 0;
     };
+    $nextStep = fn ($item) => $item->milestones->first(fn ($m) => ! in_array($m->status, ['validated', 'completed']));
+    $subtitle = [
+        'client' => 'Vos projets de conseil, vos commandes et ce qui attend une action de votre part.',
+        'expert' => 'Vos projets assignés, les échéances à venir et les points bloquants.',
+        'admin' => 'L’activité du cabinet et de la boutique en un coup d’œil.',
+    ][$role];
 @endphp
 
 @section('content')
-<x-app-header :eyebrow="$copy['eyebrow']" :title="'Bonjour '.$firstName" :subtitle="$copy['subtitle']">
+<x-espace.header :title="'Bonjour '.$firstName" :subtitle="$subtitle">
     <x-slot:actions>
         @if($role === 'client')
+            <a href="{{ route('shop.index') }}" class="btn-outline">Boutique</a>
             <a href="{{ route('requests.create') }}" class="btn-primary">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
                 Nouvelle demande
             </a>
         @elseif($role === 'admin')
-            <a href="{{ route('admin.users.index') }}" class="btn-outline">Utilisateurs</a>
-            <a href="{{ route('admin.requests.index') }}" class="btn-primary">Gérer les demandes</a>
+            <a href="{{ route('shop-admin.orders.index', ['statut' => 'a-traiter']) }}" class="btn-outline">Commandes à traiter</a>
+            <a href="{{ route('admin.requests.index') }}" class="btn-primary">Traiter les demandes</a>
+        @else
+            <a href="{{ route('projects.index') }}" class="btn-primary">Mes projets</a>
         @endif
     </x-slot:actions>
+</x-espace.header>
 
-    <dl class="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        @foreach([
-            ['Projets', $stats['total']],
-            ['En cours', $stats['open']],
-            ['Terminés', $stats['completed']],
-            ['Actions requises', $stats['alerts']],
-        ] as [$label, $value])
-            <div class="rounded-xl border border-line bg-white px-4 py-4 sm:px-5">
-                <dt class="text-sm text-muted">{{ $label }}</dt>
-                <dd class="mt-1 text-2xl font-semibold text-dark">{{ $value }}</dd>
-            </div>
-        @endforeach
-    </dl>
-</x-app-header>
+<x-espace.body class="space-y-8">
+    {{-- Chiffres clés --}}
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        @if($role === 'admin')
+            <x-espace.stat label="Demandes ce mois-ci" :value="$indicators['this_month']" :href="route('admin.requests.index')" />
+            <x-espace.stat label="Sans expert assigné" :value="$indicators['unassigned']" :tone="$indicators['unassigned'] ? 'warning' : null" :href="route('admin.requests.index')" />
+            <x-espace.stat label="Ventes du mois" :value="money($shop['month'])" :href="route('shop-admin.dashboard')" />
+            <x-espace.stat label="Commandes à traiter" :value="$shop['to_process']" :tone="$shop['to_process'] ? 'warning' : null" :href="route('shop-admin.orders.index', ['statut' => 'a-traiter'])" />
+        @elseif($role === 'expert')
+            <x-espace.stat label="Projets en cours" :value="$stats['open']" :href="route('projects.index', ['filtre' => 'en-cours'])" />
+            <x-espace.stat label="Échéances sous 14 jours" :value="$deadlines->count()" :tone="$deadlines->count() ? 'warning' : null" />
+            <x-espace.stat label="Actions requises" :value="$stats['alerts']" :tone="$stats['alerts'] ? 'warning' : null" />
+            <x-espace.stat label="Projets terminés" :value="$stats['completed']" />
+        @else
+            <x-espace.stat label="Projets en cours" :value="$stats['open']" :href="route('projects.index', ['filtre' => 'en-cours'])" />
+            <x-espace.stat label="Actions requises" :value="$stats['alerts']" :tone="$stats['alerts'] ? 'warning' : null" />
+            <x-espace.stat label="Commandes en cours" :value="$orders->whereIn('status', \App\Models\Shop\Order::OPEN)->count()" :href="route('account.orders.index')" />
+            <x-espace.stat label="Projets terminés" :value="$stats['completed']" />
+        @endif
+    </div>
 
-<section class="max-w-content px-site py-10 lg:py-12">
-    @if($indicators)
-        <div class="mb-10 grid gap-4 lg:grid-cols-3">
-            <div class="card lg:col-span-2">
-                <div class="flex flex-wrap items-baseline justify-between gap-2">
-                    <h2 class="text-[17px] font-semibold text-dark">Indicateurs</h2>
-                    <span class="text-sm text-muted">{{ $indicators['clients'] }} {{ $indicators['clients'] > 1 ? 'clients inscrits' : 'client inscrit' }}</span>
-                </div>
-                <dl class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div class="rounded-xl bg-cream px-4 py-3">
-                        <dt class="text-sm text-muted">Demandes ce mois-ci</dt>
-                        <dd class="mt-1 text-2xl font-semibold text-dark">{{ $indicators['this_month'] }}</dd>
-                    </div>
-                    <div class="rounded-xl bg-cream px-4 py-3">
-                        <dt class="text-sm text-muted">Sans expert assigné</dt>
-                        <dd class="mt-1 text-2xl font-semibold {{ $indicators['unassigned'] ? 'text-amber-800' : 'text-dark' }}">{{ $indicators['unassigned'] }}</dd>
-                    </div>
-                    <div class="rounded-xl bg-cream px-4 py-3">
-                        <dt class="text-sm text-muted">Délai moyen de prise en charge</dt>
-                        <dd class="mt-1 text-2xl font-semibold text-dark">
-                            @if($indicators['average_handling_hours'] === null)
-                                <span class="text-base font-normal text-muted">Pas encore de données</span>
-                            @elseif($indicators['average_handling_hours'] < 48)
-                                {{ $indicators['average_handling_hours'] }} h
-                            @else
-                                {{ round($indicators['average_handling_hours'] / 24, 1) }} j
-                            @endif
-                        </dd>
-                    </div>
-                </dl>
-                @if($indicators['by_status'])
-                    @php $max = max(array_column($indicators['by_status'], 'total')); @endphp
-                    <div class="mt-6">
-                        <h3 class="text-sm font-medium text-dark">Demandes par statut</h3>
-                        <ul class="mt-3 space-y-2.5">
-                            @foreach($indicators['by_status'] as $key => $row)
-                                <li class="grid grid-cols-[9rem_1fr_2.5rem] items-center gap-3 text-sm">
-                                    <a href="{{ route('admin.requests.index', ['statut' => $key]) }}" class="truncate text-muted hover:text-dark">{{ $row['label'] }}</a>
-                                    <span class="h-2 overflow-hidden rounded-full bg-cream" aria-hidden="true">
-                                        <span class="block h-full rounded-full bg-primary-500" style="width: {{ max(4, round($row['total'] / $max * 100)) }}%"></span>
-                                    </span>
-                                    <span class="text-right font-medium text-dark">{{ $row['total'] }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-                <p class="mt-5 text-xs text-muted">Délai calculé sur les demandes des 90 derniers jours, entre le dépôt et le premier changement de statut ou la première assignation.</p>
-            </div>
-            <div class="card">
-                <div class="flex items-baseline justify-between gap-2">
-                    <h2 class="text-[17px] font-semibold text-dark">Charge des experts</h2>
-                    <a href="{{ route('admin.users.index', ['role' => 'expert']) }}" class="text-sm text-muted hover:text-dark">Gérer</a>
-                </div>
-                <ul class="mt-4 divide-y divide-line">
-                    @forelse($indicators['experts'] as $expert)
-                        <li class="flex items-center justify-between gap-3 py-2.5 text-sm">
-                            <span class="truncate text-dark">{{ $expert->name }}</span>
-                            <span class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium {{ $expert->open_projects_count >= 5 ? 'bg-amber-50 text-amber-800' : 'bg-cream text-dark' }}">
-                                {{ $expert->open_projects_count }} en cours
-                            </span>
-                        </li>
-                    @empty
-                        <li class="py-3 text-sm text-muted">
-                            Aucun expert pour l’instant. <a href="{{ route('admin.users.create') }}" class="font-medium text-dark underline underline-offset-2">Créer un compte expert</a>
-                        </li>
-                    @endforelse
-                </ul>
-            </div>
-        </div>
-    @endif
-
-    <div class="grid gap-8 lg:grid-cols-[1fr_20rem]">
-
-        <div>
-            <div class="mb-4 flex items-baseline justify-between gap-4">
-                <h2 class="text-lg font-semibold text-dark">{{ $copy['list'] }}</h2>
-                <span class="text-sm text-muted">{{ $requests->total() }} {{ \Illuminate\Support\Str::plural('projet', $requests->total()) }}</span>
-            </div>
-
-            @if($stats['total'] > 0)
-                <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <nav class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:pb-0" aria-label="Filtrer les projets">
-                        @foreach(['' => 'Tous'] + $filters as $key => $label)
-                            @php $active = (string) $currentFilter === (string) $key; @endphp
-                            <a href="{{ route('dashboard', array_filter(['filtre' => $key, 'q' => $search])) }}"
-                               class="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition {{ $active ? 'bg-dark text-white' : 'bg-cream text-dark hover:bg-sand' }}"
-                               @if($active) aria-current="true" @endif>{{ $label }}</a>
-                        @endforeach
-                    </nav>
-                    <form method="GET" action="{{ route('dashboard') }}" class="relative sm:ml-auto sm:w-64">
-                        @if($currentFilter)<input type="hidden" name="filtre" value="{{ $currentFilter }}">@endif
-                        <label for="dashboard-search" class="sr-only">Rechercher un projet</label>
-                        <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        <input id="dashboard-search" type="search" name="q" value="{{ $search }}" placeholder="Titre ou référence" class="field-input !py-2 pl-9 text-sm">
-                    </form>
-                </div>
-            @endif
-
-            <div class="space-y-3">
-                @forelse($requests as $requestItem)
-                    @php $progress = $progressOf($requestItem); @endphp
-                    <a href="{{ route('projects.show', $requestItem) }}"
-                       class="group block rounded-xl border border-line bg-white p-5 transition-colors hover:border-dark/25">
-                        <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="grid items-start gap-6 lg:grid-cols-[1fr_22rem]">
+        <div class="space-y-6">
+            {{-- Projets en cours --}}
+            <x-espace.section :title="$role === 'admin' ? 'Projets récemment mis à jour' : 'Projets en cours'" flush>
+                <x-slot:actions>
+                    <a href="{{ route('projects.index') }}" class="text-sm text-muted hover:text-dark">Tout voir</a>
+                </x-slot:actions>
+                @forelse($openProjects as $project)
+                    @php $progress = $progressOf($project); $step = $nextStep($project); @endphp
+                    <a href="{{ route('projects.show', $project) }}" class="block border-b border-line px-5 py-4 last:border-0 hover:bg-cream/40">
+                        <div class="flex flex-wrap items-start justify-between gap-2">
                             <div class="min-w-0">
-                                <p class="text-xs text-muted">
-                                    {{ $requestItem->reference }} · {{ \App\Models\ServiceRequest::SERVICE_TYPES[$requestItem->service_type] ?? $requestItem->service_type }}
-                                </p>
-                                <h3 class="mt-1 text-[17px] font-semibold text-dark">{{ $requestItem->title }}</h3>
+                                <p class="text-xs text-muted">{{ $project->reference }} · {{ $role === 'client' ? ($project->assignedExpert?->name ?? 'Expert à désigner') : ($project->client?->name ?? 'Client supprimé') }}</p>
+                                <p class="mt-0.5 font-medium text-dark">{{ $project->title }}</p>
                             </div>
-                            <x-status-badge :status="$requestItem->status" />
+                            <x-status-badge :status="$project->status" />
                         </div>
-
-                        <div class="mt-4">
-                            <div class="flex items-center justify-between gap-4 text-sm text-muted">
-                                <span class="truncate">
-                                    @if($requestItem->milestones->isNotEmpty())
-                                        Étape en cours : <span class="text-dark">{{ ($requestItem->milestones->firstWhere(fn ($m) => ! in_array($m->status, ['validated', 'completed'])) ?? $requestItem->milestones->last())->title }}</span>
-                                    @else
-                                        Étapes en cours de planification
-                                    @endif
-                                </span>
-                                <span class="shrink-0 font-medium text-dark">{{ $progress }} %</span>
-                            </div>
-                            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-cream" role="progressbar" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100" aria-label="Avancement">
+                        <div class="mt-3 flex items-center gap-3">
+                            <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-cream" role="progressbar" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100" aria-label="Avancement">
                                 <div class="h-full rounded-full bg-primary-500" style="width: {{ $progress }}%"></div>
                             </div>
+                            <span class="w-10 text-right text-sm font-medium text-dark">{{ $progress }} %</span>
                         </div>
-
-                        <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted">
-                            <span>{{ $role === 'client' ? ($requestItem->assignedExpert?->name ?? 'Expert à désigner') : ($requestItem->client?->name ?? 'Client supprimé') }}</span>
-                            <span>{{ $requestItem->milestones_count }} {{ \Illuminate\Support\Str::plural('étape', $requestItem->milestones_count) }}</span>
-                            <span>{{ $requestItem->messages_count }} {{ \Illuminate\Support\Str::plural('message', $requestItem->messages_count) }}</span>
-                            <span class="ml-auto text-dark group-hover:underline">Ouvrir</span>
-                        </div>
+                        <p class="mt-2 truncate text-sm text-muted">
+                            {{ $step ? 'Étape en cours : '.$step->title : ($project->milestones->isEmpty() ? 'Étapes en cours de planification' : 'Toutes les étapes sont validées') }}
+                        </p>
                     </a>
                 @empty
-                    <div class="rounded-xl border border-dashed border-line bg-white px-6 py-14 text-center">
-                        @if($currentFilter || $search)
-                            <h3 class="text-lg font-semibold text-dark">Aucun projet ne correspond</h3>
-                            <p class="mx-auto mt-2 max-w-sm text-[15px] leading-7 text-muted">Modifiez la recherche ou le filtre.</p>
-                            <a href="{{ route('dashboard') }}" class="btn-outline mt-6">Voir tous les projets</a>
-                        @elseif($role === 'client')
-                            <h3 class="text-lg font-semibold text-dark">Aucun projet pour l’instant</h3>
-                            <p class="mx-auto mt-2 max-w-sm text-[15px] leading-7 text-muted">Décrivez votre besoin : un expert AgriFish l’analyse et vous propose un plan d’action.</p>
-                            <a href="{{ route('requests.create') }}" class="btn-primary mt-6">Déposer ma première demande</a>
-                        @elseif($role === 'admin')
-                            <h3 class="text-lg font-semibold text-dark">Aucune demande pour l’instant</h3>
-                            <p class="mx-auto mt-2 max-w-sm text-[15px] leading-7 text-muted">Les demandes déposées par les clients apparaîtront ici.</p>
-                        @else
-                            <h3 class="text-lg font-semibold text-dark">Aucun projet assigné</h3>
-                            <p class="mx-auto mt-2 max-w-sm text-[15px] leading-7 text-muted">Les projets apparaîtront ici dès qu’ils vous seront assignés.</p>
+                    <div class="px-5 py-10 text-center">
+                        <p class="font-medium text-dark">Aucun projet en cours</p>
+                        @if($role === 'client')
+                            <p class="mt-1 text-sm text-muted">Décrivez votre besoin : un expert l’analyse et vous propose un plan d’action.</p>
+                            <a href="{{ route('requests.create') }}" class="btn-primary mt-4">Déposer une demande</a>
                         @endif
                     </div>
                 @endforelse
-            </div>
+            </x-espace.section>
 
-            <div class="mt-6">{{ $requests->links() }}</div>
+            @if($role === 'client')
+                <x-espace.section title="Dernières commandes" flush>
+                    <x-slot:actions>
+                        <a href="{{ route('account.orders.index') }}" class="text-sm text-muted hover:text-dark">Toutes mes commandes</a>
+                    </x-slot:actions>
+                    @forelse($orders as $order)
+                        <a href="{{ route('account.orders.show', $order) }}" class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3.5 last:border-0 hover:bg-cream/40">
+                            <div>
+                                <p class="font-medium text-dark">{{ $order->number }}</p>
+                                <p class="text-sm text-muted">{{ $order->created_at->translatedFormat('d F Y') }} · {{ $order->items_count }} {{ $order->items_count > 1 ? 'articles' : 'article' }}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="font-medium text-dark">{{ money($order->total) }}</span>
+                                <x-status-badge :status="$order->status" :label="$order->statusLabel()" />
+                            </div>
+                        </a>
+                    @empty
+                        <div class="px-5 py-8 text-center text-sm text-muted">
+                            Aucune commande pour l’instant. <a href="{{ route('shop.index') }}" class="font-medium text-dark underline underline-offset-2">Découvrir la boutique</a>
+                        </div>
+                    @endforelse
+                </x-espace.section>
+            @endif
+
+            @if($role === 'admin')
+                <div class="grid gap-6 md:grid-cols-2">
+                    <x-espace.section title="Demandes par statut">
+                        @if($indicators['by_status'])
+                            @php $max = max(array_column($indicators['by_status'], 'total')); @endphp
+                            <ul class="space-y-2.5">
+                                @foreach($indicators['by_status'] as $key => $row)
+                                    <li class="grid grid-cols-[8.5rem_1fr_2rem] items-center gap-3 text-sm">
+                                        <a href="{{ route('admin.requests.index', ['statut' => $key]) }}" class="truncate text-muted hover:text-dark">{{ $row['label'] }}</a>
+                                        <span class="h-2 overflow-hidden rounded-full bg-cream" aria-hidden="true"><span class="block h-full rounded-full bg-primary-500" style="width: {{ max(4, round($row['total'] / $max * 100)) }}%"></span></span>
+                                        <span class="text-right font-medium text-dark">{{ $row['total'] }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="text-sm text-muted">Aucune demande pour l’instant.</p>
+                        @endif
+                        <p class="mt-4 border-t border-line pt-3 text-sm text-muted">
+                            Délai moyen de prise en charge :
+                            <span class="font-medium text-dark">
+                                @if($indicators['average_handling_hours'] === null) pas encore de données
+                                @elseif($indicators['average_handling_hours'] < 48) {{ $indicators['average_handling_hours'] }} h
+                                @else {{ round($indicators['average_handling_hours'] / 24, 1) }} jours
+                                @endif
+                            </span>
+                        </p>
+                    </x-espace.section>
+
+                    <x-espace.section title="Charge des experts" flush>
+                        <x-slot:actions><a href="{{ route('admin.users.index', ['role' => 'expert']) }}" class="text-sm text-muted hover:text-dark">Gérer</a></x-slot:actions>
+                        <ul class="divide-y divide-line">
+                            @forelse($indicators['experts'] as $expert)
+                                <li class="flex items-center justify-between gap-3 px-5 py-2.5 text-sm">
+                                    <span class="truncate text-dark">{{ $expert->name }}</span>
+                                    <span class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium {{ $expert->open_projects_count >= 5 ? 'bg-amber-50 text-amber-800' : 'bg-cream text-dark' }}">{{ $expert->open_projects_count }} en cours</span>
+                                </li>
+                            @empty
+                                <li class="px-5 py-4 text-sm text-muted">Aucun expert. <a href="{{ route('admin.users.create') }}" class="font-medium text-dark underline underline-offset-2">Créer un compte expert</a></li>
+                            @endforelse
+                        </ul>
+                    </x-espace.section>
+                </div>
+            @endif
         </div>
 
-        <aside class="h-fit rounded-xl border border-line bg-white p-5">
-            <h2 class="text-[15px] font-semibold text-dark">Actions requises</h2>
-            <div class="mt-4 space-y-3">
+        <aside class="space-y-6">
+            <x-espace.section title="Actions requises" flush>
                 @forelse($alerts as $alert)
-                    <a href="{{ $alert['url'] }}" class="block rounded-lg border-l-[3px] bg-cream/70 px-3.5 py-3 transition-colors hover:bg-cream {{ $alert['tone'] === 'red' ? 'border-red-500' : 'border-amber-500' }}">
+                    <a href="{{ $alert['url'] }}" class="block border-b border-l-[3px] border-b-line px-4 py-3 last:border-b-0 hover:bg-cream/40 {{ $alert['tone'] === 'red' ? 'border-l-red-500' : 'border-l-amber-500' }}">
                         <p class="text-xs text-muted">{{ $alert['reference'] }}</p>
                         <p class="mt-0.5 text-sm font-medium text-dark">{{ $alert['message'] }}</p>
                         <p class="mt-0.5 truncate text-xs text-muted">{{ $alert['title'] }}</p>
                     </a>
                 @empty
-                    <p class="text-sm leading-6 text-muted">Rien à signaler, tout est à jour.</p>
+                    <p class="px-5 py-5 text-sm text-muted">Rien à signaler, tout est à jour.</p>
                 @endforelse
-            </div>
+            </x-espace.section>
+
+            @if($role === 'expert')
+                <x-espace.section title="Échéances à venir" flush>
+                    @forelse($deadlines as $milestone)
+                        @php $late = $milestone->due_date->isPast(); @endphp
+                        <a href="{{ route('projects.show', $milestone->serviceRequest) }}#etapes" class="block border-b border-line px-5 py-3 last:border-0 hover:bg-cream/40">
+                            <p class="text-sm font-medium text-dark">{{ $milestone->title }}</p>
+                            <p class="mt-0.5 text-xs {{ $late ? 'font-medium text-red-700' : 'text-muted' }}">{{ $late ? 'En retard · ' : '' }}{{ $milestone->due_date->translatedFormat('d M Y') }} · {{ $milestone->serviceRequest->reference }}</p>
+                        </a>
+                    @empty
+                        <p class="px-5 py-5 text-sm text-muted">Aucune échéance dans les 14 prochains jours.</p>
+                    @endforelse
+                </x-espace.section>
+            @endif
+
+            @if($role === 'admin')
+                <x-espace.section title="Boutique">
+                    <dl class="space-y-3 text-sm">
+                        <div class="flex justify-between"><dt class="text-muted">Ventes du mois</dt><dd class="font-medium text-dark">{{ money($shop['month']) }}</dd></div>
+                        <div class="flex justify-between"><dt class="text-muted">Commandes à traiter</dt><dd class="font-medium text-dark">{{ $shop['to_process'] }}</dd></div>
+                        <div class="flex justify-between"><dt class="text-muted">Avis à valider</dt><dd class="font-medium text-dark">{{ $shop['reviews'] }}</dd></div>
+                    </dl>
+                    <a href="{{ route('shop-admin.dashboard') }}" class="btn-outline mt-4 w-full">Tableau de bord boutique</a>
+                </x-espace.section>
+            @endif
+
             @if($role === 'client')
-                <div class="mt-6 border-t border-line pt-5 text-sm leading-6 text-muted">
-                    Une question ? Écrivez à votre expert depuis la page du projet, ou à <a href="mailto:{{ config('site.contact.email') }}" class="text-dark underline underline-offset-2">{{ config('site.contact.email') }}</a>.
-                </div>
+                <x-espace.section title="Besoin d’aide ?">
+                    <p class="text-sm leading-6 text-muted">Pour un projet, écrivez à votre expert depuis la page du projet. Pour une commande ou toute autre question : <a href="mailto:{{ config('site.contact.email') }}" class="text-dark underline underline-offset-2">{{ config('site.contact.email') }}</a>.</p>
+                </x-espace.section>
             @endif
         </aside>
     </div>
-</section>
+</x-espace.body>
 @endsection

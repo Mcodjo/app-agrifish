@@ -28,6 +28,7 @@ class DemoUsersSeeder extends Seeder
             ['email' => 'client@agrifish.africa', 'name' => 'Mariam Ouattara', 'role' => 'client', 'phone' => '+2250102030405'],
             ['email' => 'admin@agrifish.africa', 'name' => 'Administration AgriFish', 'role' => 'admin', 'phone' => '+2250102030406'],
             ['email' => 'expert@agrifish.africa', 'name' => 'Ibrahima Sow', 'role' => 'expert', 'phone' => '+2250102030407'],
+            ['email' => 'boutique@agrifish.africa', 'name' => 'Koffi Mensah', 'role' => 'manager', 'phone' => '+2250102030408'],
         ] as $account) {
             $user = User::firstOrNew(['email' => $account['email']]);
 

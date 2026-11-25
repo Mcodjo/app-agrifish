@@ -219,10 +219,10 @@ class ProjectWorkflowTest extends TestCase
         $done = $this->makeRequest($client, null, 'completed');
         $done->update(['title' => 'Formation pisciculture']);
 
-        $this->actingAs($client)->get(route('dashboard', ['filtre' => 'terminees']))
+        $this->actingAs($client)->get(route('projects.index', ['filtre' => 'terminees']))
             ->assertOk()->assertSee($done->reference)->assertDontSee($open->reference);
 
-        $this->actingAs($client)->get(route('dashboard', ['q' => 'pisciculture']))
+        $this->actingAs($client)->get(route('projects.index', ['q' => 'pisciculture']))
             ->assertOk()->assertSee($done->reference)->assertDontSee($open->reference);
     }
 
@@ -236,6 +236,7 @@ class ProjectWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee('Charge des experts')
             ->assertSee('Awa Diallo')
-            ->assertSee('Demandes ce mois-ci');
+            ->assertSee('Demandes ce mois-ci')
+            ->assertSee('Ventes du mois');
     }
 }

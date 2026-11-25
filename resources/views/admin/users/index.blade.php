@@ -1,10 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.espace')
 
 @section('title', 'Utilisateurs')
-@section('espace', true)
 
 @section('content')
-<x-app-header :back="route('dashboard')" back-label="Tableau de bord" eyebrow="Administration"
+<x-espace.header :back="route('dashboard')" back-label="Vue d’ensemble" eyebrow="Administration"
               title="Utilisateurs"
               subtitle="Clients, experts et administrateurs de la plateforme. Créez les comptes de l’équipe et gérez les accès.">
     <x-slot:actions>
@@ -13,9 +12,9 @@
             Nouveau compte
         </a>
     </x-slot:actions>
-</x-app-header>
+</x-espace.header>
 
-<section class="max-w-content px-site py-10 lg:py-12">
+<section class="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:py-10">
     <div class="space-y-4">
         @if($errors->any())
             <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
@@ -34,7 +33,7 @@
                 <button type="submit" class="btn-primary">Rechercher</button>
             </form>
             <nav class="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Filtrer par rôle">
-                @php $tabs = ['' => ['Tous', $counts->sum()], 'client' => ['Clients', $counts['client'] ?? 0], 'expert' => ['Experts', $counts['expert'] ?? 0], 'admin' => ['Administrateurs', $counts['admin'] ?? 0]]; @endphp
+                @php $tabs = ['' => ['Tous', $counts->sum()], 'client' => ['Clients', $counts['client'] ?? 0], 'expert' => ['Experts', $counts['expert'] ?? 0], 'manager' => ['Gestionnaires', $counts['manager'] ?? 0], 'admin' => ['Administrateurs', $counts['admin'] ?? 0]]; @endphp
                 @foreach($tabs as $key => [$label, $count])
                     @php $active = (string) $currentRole === (string) $key; @endphp
                     <a href="{{ route('admin.users.index', array_filter(['role' => $key, 'q' => $search])) }}"

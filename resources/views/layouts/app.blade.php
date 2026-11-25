@@ -8,38 +8,23 @@
     $navLinks = [
         ['route' => 'services', 'label' => 'Services'],
         ['route' => 'formation', 'label' => 'Formation'],
+        ['route' => 'shop.index', 'label' => 'Boutique', 'pattern' => 'shop.*'],
         ['route' => 'case-studies', 'label' => 'Réalisations'],
         ['route' => 'about', 'label' => 'À propos'],
         ['route' => 'contact', 'label' => 'Contact'],
     ];
     $user = auth()->user();
-    $roleLabel = $user ? (['admin' => 'Administrateur', 'expert' => 'Expert', 'client' => 'Client'][$user->role] ?? 'Client') : null;
+    $roleLabel = $user?->roleLabel();
+    $cartCount ??= 0;
     $initials = $user ? collect(explode(' ', $user->name))->filter()->take(2)->map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)))->implode('') : null;
     $espace = $__env->hasSection('espace');
+    $noindex = $espace || $__env->hasSection('noindex');
     $contact = config('site.contact');
 @endphp
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $fullTitle }}</title>
-    <meta name="description" content="{{ $description }}">
-    <link rel="canonical" href="@yield('og_url', url()->current())">
-    <meta property="og:site_name" content="AgriFish">
-    <meta property="og:type" content="website">
-    <meta property="og:locale" content="fr_FR">
-    <meta property="og:title" content="@yield('og_title', $fullTitle)">
-    <meta property="og:description" content="@yield('og_description', $description)">
-    <meta property="og:url" content="@yield('og_url', url()->current())">
-    <meta property="og:image" content="{{ asset('images/og-agrifish.jpg') }}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="theme-color" content="#1b4332">
-    @if($espace)
-        <meta name="robots" content="noindex">
-    @endif
-
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('layouts.partials.head')
 </head>
 <body class="min-h-screen bg-white">
     <a href="#contenu" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:font-semibold focus:shadow-lg">Aller au contenu</a>
@@ -56,7 +41,7 @@
 
                 <nav class="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
                     @foreach($navLinks as $link)
-                        @php $active = request()->routeIs($link['route']); @endphp
+                        @php $active = request()->routeIs($link['pattern'] ?? $link['route']); @endphp
                         <a href="{{ route($link['route']) }}" @if($active) aria-current="page" @endif
                            class="rounded-lg px-3 py-2 text-[15px] transition-colors {{ $active ? 'font-semibold text-dark' : 'text-muted hover:text-dark' }}">
                             {{ $link['label'] }}
@@ -65,6 +50,12 @@
                 </nav>
 
                 <div class="hidden items-center gap-2 lg:flex">
+                    <a href="{{ route('shop.cart') }}" class="relative flex h-10 w-10 items-center justify-center rounded-full text-dark transition hover:bg-cream" aria-label="Panier{{ $cartCount ? ', '.$cartCount.' article(s)' : '' }}">
+                        <svg class="h-[22px] w-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7Zm3 0V6a3 3 0 0 1 6 0v1"/></svg>
+                        @if($cartCount)
+                            <span class="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-800 px-1 text-[11px] font-semibold text-white">{{ $cartCount }}</span>
+                        @endif
+                    </a>
                     @auth
                         <a href="{{ route('dashboard') }}" class="btn-soft px-4 py-2.5 text-sm">Mon espace</a>
                         <div x-data="{ menu: false }" class="relative" @click.outside="menu = false">
@@ -79,10 +70,11 @@
                                     <p class="truncate text-xs text-muted">{{ $roleLabel }} · {{ $user->email }}</p>
                                 </div>
                                 <div class="p-1.5 text-sm">
-                                    <a href="{{ route('dashboard') }}" class="block rounded-lg px-3 py-2 text-dark hover:bg-cream">Tableau de bord</a>
-                                    @if($user->isAdmin())
-                                        <a href="{{ route('admin.requests.index') }}" class="block rounded-lg px-3 py-2 text-dark hover:bg-cream">Gestion des demandes</a>
-                                        <a href="{{ route('admin.users.index') }}" class="block rounded-lg px-3 py-2 text-dark hover:bg-cream">Utilisateurs</a>
+                                    <a href="{{ route('dashboard') }}" class="block rounded-lg px-3 py-2 text-dark hover:bg-cream">Mon espace</a>
+                                    @if($user->canManageShop())
+                                        <a href="{{ route('shop-admin.orders.index') }}" class="block rounded-lg px-3 py-2 text-dark hover:bg-cream">Gestion de la boutique</a>
+                                    @else
+                                        <a href="{{ route('account.orders.index') }}" class="block rounded-lg px-3 py-2 text-dark hover:bg-cream">Mes commandes</a>
                                     @endif
                                     <a href="{{ route('profile.edit') }}" class="block rounded-lg px-3 py-2 text-dark hover:bg-cream">Mon profil</a>
                                     <form method="POST" action="{{ route('logout') }}">
@@ -98,26 +90,30 @@
                     @endauth
                 </div>
 
+                <div class="flex items-center gap-1 lg:hidden">
+                <a href="{{ route('shop.cart') }}" class="relative rounded-lg p-2 text-dark" aria-label="Panier{{ $cartCount ? ', '.$cartCount.' article(s)' : '' }}">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7Zm3 0V6a3 3 0 0 1 6 0v1"/></svg>
+                    @if($cartCount)
+                        <span class="absolute right-0 top-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary-800 px-1 text-[10px] font-semibold text-white">{{ $cartCount }}</span>
+                    @endif
+                </a>
                 <button type="button" @click="open = !open" :aria-expanded="open" aria-controls="menu-mobile" aria-label="Ouvrir le menu"
-                        class="-mr-2 rounded-lg p-2 text-dark lg:hidden">
+                        class="-mr-2 rounded-lg p-2 text-dark">
                     <svg x-show="!open" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg>
                     <svg x-show="open" x-cloak class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" d="M6 18 18 6M6 6l12 12"/></svg>
                 </button>
+                </div>
             </div>
         </div>
 
         <div id="menu-mobile" x-show="open" x-cloak x-collapse class="border-t border-line bg-white lg:hidden">
             <nav class="max-w-content px-site py-3" aria-label="Navigation mobile">
                 @foreach($navLinks as $link)
-                    <a href="{{ route($link['route']) }}" class="block border-b border-line py-3.5 text-[17px] {{ request()->routeIs($link['route']) ? 'font-semibold text-dark' : 'text-dark' }}">{{ $link['label'] }}</a>
+                    <a href="{{ route($link['route']) }}" class="block border-b border-line py-3.5 text-[17px] {{ request()->routeIs($link['pattern'] ?? $link['route']) ? 'font-semibold text-dark' : 'text-dark' }}">{{ $link['label'] }}</a>
                 @endforeach
                 <div class="flex flex-col gap-2 py-5">
                     @auth
                         <a href="{{ route('dashboard') }}" class="btn-primary">Mon espace</a>
-                        @if(auth()->user()->isAdmin())
-                            <a href="{{ route('admin.requests.index') }}" class="btn-soft">Gestion des demandes</a>
-                            <a href="{{ route('admin.users.index') }}" class="btn-soft">Utilisateurs</a>
-                        @endif
                         <a href="{{ route('profile.edit') }}" class="btn-soft">Mon profil</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -144,6 +140,7 @@
                 <p>© {{ date('Y') }} AgriFish</p>
                 <div class="flex gap-5">
                     <a href="{{ route('contact') }}" class="hover:text-dark">Assistance</a>
+                    <a href="{{ route('cgv') }}" class="hover:text-dark">CGV</a>
                     <a href="{{ route('mentions-legales') }}" class="hover:text-dark">Mentions légales</a>
                     <a href="{{ route('politique-confidentialite') }}" class="hover:text-dark">Confidentialité</a>
                 </div>
@@ -173,6 +170,7 @@
                             <li><a href="{{ route('services') }}#aquaculture" class="text-white/85 hover:text-white">Aquaculture</a></li>
                             <li><a href="{{ route('services') }}#etudes" class="text-white/85 hover:text-white">Études techniques</a></li>
                             <li><a href="{{ route('formation') }}" class="text-white/85 hover:text-white">Formation</a></li>
+                            <li><a href="{{ route('shop.index') }}" class="text-white/85 hover:text-white">Boutique</a></li>
                         </ul>
                     </div>
 
@@ -198,6 +196,7 @@
                 <div class="flex flex-col gap-3 border-t border-white/10 py-6 text-sm text-white/50 sm:flex-row sm:items-center sm:justify-between">
                     <p>© {{ date('Y') }} AgriFish. Tous droits réservés.</p>
                     <div class="flex gap-5">
+                        <a href="{{ route('cgv') }}" class="hover:text-white">Conditions de vente</a>
                         <a href="{{ route('mentions-legales') }}" class="hover:text-white">Mentions légales</a>
                         <a href="{{ route('politique-confidentialite') }}" class="hover:text-white">Confidentialité</a>
                     </div>

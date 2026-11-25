@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+
+    'fedapay' => [
+        // « sandbox » pour les essais, « live » en production.
+        'environment' => env('FEDAPAY_ENVIRONMENT', 'sandbox'),
+        'secret_key' => env('FEDAPAY_SECRET_KEY'),
+        'webhook_secret' => env('FEDAPAY_WEBHOOK_SECRET'),
+    ],
+
+    'sms' => [
+        // « log » écrit les SMS dans les journaux ; « http » les transmet au fournisseur configuré.
+        'driver' => env('SMS_DRIVER', 'log'),
+        'url' => env('SMS_HTTP_URL'),
+        'token' => env('SMS_HTTP_TOKEN'),
+        'sender' => env('SMS_SENDER', 'AgriFish'),
+    ],
+
 ];

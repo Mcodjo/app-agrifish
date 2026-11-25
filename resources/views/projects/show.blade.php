@@ -1,7 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.espace')
 
 @section('title', $serviceRequest->reference.' · Projet')
-@section('espace', true)
 
 @php
     $milestoneStatuses = ['planned' => 'Planifié', 'in_progress' => 'En cours', 'validated' => 'Validé', 'blocked' => 'Bloqué', 'completed' => 'Terminé'];
@@ -28,7 +27,7 @@
 @endphp
 
 @section('content')
-<x-app-header :back="route('dashboard')" back-label="Tableau de bord"
+<x-espace.header :back="route('projects.index')" back-label="{{ $me->isAdmin() ? 'Projets' : ($me->isExpert() ? 'Projets assignés' : 'Mes projets') }}"
               :eyebrow="$serviceRequest->reference.' · '.(\App\Models\ServiceRequest::SERVICE_TYPES[$serviceRequest->service_type] ?? $serviceRequest->service_type)"
               :title="$serviceRequest->title">
     <x-slot:actions>
@@ -55,7 +54,7 @@
         @endif
     </x-slot:actions>
 
-    <div class="mt-8 grid gap-3 lg:grid-cols-[1.3fr_1fr]">
+    <div class="mt-6 grid gap-3 lg:grid-cols-[1.3fr_1fr]">
         <div class="rounded-xl border border-line bg-white p-5">
             <div class="flex items-baseline justify-between text-sm">
                 <span class="text-muted">Avancement du projet</span>
@@ -90,12 +89,47 @@
             </div>
         </dl>
     </div>
-</x-app-header>
+</x-espace.header>
 
-<section class="max-w-content px-site py-10 lg:py-12">
-    <div class="grid items-start gap-6 lg:grid-cols-[1.25fr_1fr]">
+@php
+    $initialTab = match (true) {
+        $errors->has('body') || $errors->has('attachment') || session('status') === 'message-sent' => 'messagerie',
+        $errors->has('documents') || $errors->has('documents.*') || in_array(session('status'), ['documents-added', 'document-removed'], true) => 'documents',
+        old('milestone_id') !== null || $errors->has('title') || $errors->has('due_date') || $errors->has('deliverables.*') || in_array(session('status'), ['milestone-created', 'milestone-updated', 'milestone-moved', 'milestone-deleted', 'deliverable-removed'], true) => 'etapes',
+        default => 'apercu',
+    };
+    $deliverables = $serviceRequest->milestones->flatMap(fn ($m) => collect($m->deliverable_paths ?? [])->map(fn ($path, $index) => ['milestone' => $m, 'path' => $path, 'index' => $index]));
+    $tabs = [
+        'apercu' => ['Aperçu', null],
+        'etapes' => ['Étapes', $serviceRequest->milestones->count()],
+        'documents' => ['Documents', count($serviceRequest->document_paths ?? []) + $deliverables->count()],
+        'messagerie' => ['Messagerie', $messages->count()],
+        'historique' => ['Historique', null],
+    ];
+    $nextMilestone = $serviceRequest->milestones->first(fn ($m) => ! in_array($m->status, ['validated', 'completed']));
+@endphp
 
-        <div class="space-y-6">
+<div x-data="{ tab: @js($initialTab), open(name) { this.tab = name; history.replaceState(null, '', '#' + name) } }"
+     x-init="const h = location.hash.slice(1); if (@js(array_keys($tabs)).includes(h)) tab = h"
+     @hashchange.window="const h = location.hash.slice(1); if (@js(array_keys($tabs)).includes(h)) tab = h">
+    <div class="sticky top-14 z-20 border-b border-line bg-white lg:top-0">
+        <nav class="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-3 sm:px-6" aria-label="Sections du projet" role="tablist">
+            @foreach($tabs as $key => [$label, $count])
+                <a href="#{{ $key }}" role="tab" id="tab-{{ $key }}" @click.prevent="open('{{ $key }}')"
+                   :aria-selected="tab === '{{ $key }}'"
+                   :class="tab === '{{ $key }}' ? 'border-primary-800 text-dark' : 'border-transparent text-muted hover:text-dark'"
+                   class="inline-flex shrink-0 items-center gap-2 border-b-2 px-3 py-3.5 text-sm font-medium transition-colors">
+                    {{ $label }}
+                    @if($count)<span class="rounded-full bg-cream px-1.5 text-xs text-muted">{{ $count }}</span>@endif
+                </a>
+            @endforeach
+        </nav>
+    </div>
+
+    <x-espace.body>
+        <div x-show="tab === 'apercu'" role="tabpanel" aria-labelledby="tab-apercu">
+            <div class="grid items-start gap-6 lg:grid-cols-[1fr_20rem]">
+                <div class="space-y-6">
             @if($serviceRequest->status === 'cancelled')
                 <div class="rounded-xl border border-line bg-white p-4 text-sm text-muted">
                     Cette demande a été annulée{{ $serviceRequest->status_changed_at ? ' le '.$serviceRequest->status_changed_at->format('d/m/Y') : '' }}. Pour relancer le projet, <a href="{{ route('requests.create') }}" class="font-medium text-dark underline underline-offset-2">déposez une nouvelle demande</a>.
@@ -116,6 +150,33 @@
                 @endif
             </div>
 
+                </div>
+                <aside class="space-y-4">
+                    <div class="card">
+                        <h2 class="text-[15px] font-semibold text-dark">Prochaine étape</h2>
+                        @if($nextMilestone)
+                            <p class="mt-2 font-medium text-dark">{{ $nextMilestone->title }}</p>
+                            <p class="mt-1 text-sm text-muted">{{ $nextMilestone->statusLabel() }}{{ $nextMilestone->due_date ? ' · échéance '.$nextMilestone->due_date->translatedFormat('d M Y') : '' }}</p>
+                        @elseif($serviceRequest->milestones->isEmpty())
+                            <p class="mt-2 text-sm leading-6 text-muted">{{ $canManageMilestones ? 'Planifiez les étapes du projet pour que le client suive l’avancement.' : 'Votre expert va planifier les étapes de votre projet.' }}</p>
+                        @else
+                            <p class="mt-2 text-sm text-muted">Toutes les étapes sont validées.</p>
+                        @endif
+                        <a href="#etapes" @click.prevent="open('etapes')" class="link-arrow mt-3 inline-flex text-sm">Voir les étapes</a>
+                    </div>
+                    <div class="card">
+                        <h2 class="text-[15px] font-semibold text-dark">Raccourcis</h2>
+                        <ul class="mt-2 space-y-1 text-sm">
+                            <li><a href="#documents" @click.prevent="open('documents')" class="flex justify-between rounded-lg px-2 py-1.5 hover:bg-cream"><span>Documents et livrables</span><span class="text-muted">{{ $tabs['documents'][1] }}</span></a></li>
+                            <li><a href="#messagerie" @click.prevent="open('messagerie')" class="flex justify-between rounded-lg px-2 py-1.5 hover:bg-cream"><span>Messages</span><span class="text-muted">{{ $messages->count() }}</span></a></li>
+                            <li><a href="#historique" @click.prevent="open('historique')" class="flex justify-between rounded-lg px-2 py-1.5 hover:bg-cream"><span>Historique</span><span class="text-muted">{{ $serviceRequest->events->count() }}</span></a></li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <div x-show="tab === 'etapes'" x-cloak role="tabpanel" aria-labelledby="tab-etapes" class="mx-auto max-w-3xl">
             <div class="card">
                 <div class="flex items-center justify-between gap-4">
                     <h2 class="text-[17px] font-semibold text-dark">Étapes du projet</h2>
@@ -297,7 +358,7 @@
             </div>
         </div>
 
-        <div class="space-y-6 lg:sticky lg:top-28">
+        <div x-show="tab === 'documents'" x-cloak role="tabpanel" aria-labelledby="tab-documents" class="grid items-start gap-6 lg:grid-cols-2">
             <div class="card">
                 <h2 class="text-[17px] font-semibold text-dark">Documents de la demande</h2>
                 <ul class="mt-4 divide-y divide-line">
@@ -341,7 +402,30 @@
                 @endif
             </div>
 
-            <div id="messagerie" class="card flex scroll-mt-28 flex-col !p-0">
+            <div class="card">
+                <h2 class="text-[17px] font-semibold text-dark">Livrables de l’expert</h2>
+                <ul class="mt-4 divide-y divide-line">
+                    @forelse($deliverables as $deliverable)
+                        @php [$ext, $color] = $fileMeta($deliverable['path']); @endphp
+                        <li>
+                            <a href="{{ route('projects.milestones.download', [$deliverable['milestone'], $deliverable['index']]) }}" class="group flex items-center gap-3 py-2.5">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold {{ $color }}">{{ $ext }}</span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block text-sm font-medium text-dark group-hover:underline">Livrable {{ $deliverable['index'] + 1 }}</span>
+                                    <span class="block truncate text-xs text-muted">Étape : {{ $deliverable['milestone']->title }}</span>
+                                </span>
+                                <svg class="h-5 w-5 text-muted group-hover:text-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            </a>
+                        </li>
+                    @empty
+                        <li class="py-3 text-sm text-muted">Les livrables apparaîtront ici dès que l’expert les déposera sur une étape.</li>
+                    @endforelse
+                </ul>
+            </div>
+        </div>
+
+        <div x-show="tab === 'messagerie'" x-cloak role="tabpanel" aria-labelledby="tab-messagerie" class="mx-auto max-w-3xl">
+            <div class="card flex flex-col !p-0">
                 <div class="border-b border-line px-5 py-4 sm:px-6">
                     <h2 class="text-[17px] font-semibold text-dark">Messagerie</h2>
                     <p class="text-xs text-muted">Échanges entre le client et l’expert du projet</p>
@@ -395,6 +479,9 @@
                 @endif
             </div>
 
+        </div>
+
+        <div x-show="tab === 'historique'" x-cloak role="tabpanel" aria-labelledby="tab-historique" class="mx-auto max-w-3xl">
             <div class="card">
                 <h2 class="text-[17px] font-semibold text-dark">Historique</h2>
                 <ol class="mt-4 space-y-4">
@@ -418,6 +505,6 @@
                 </ol>
             </div>
         </div>
-    </div>
-</section>
+    </x-espace.body>
+</div>
 @endsection

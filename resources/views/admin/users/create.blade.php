@@ -1,14 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.espace')
 
 @section('title', 'Nouveau compte')
-@section('espace', true)
 
 @section('content')
-<x-app-header :back="route('admin.users.index')" back-label="Utilisateurs" eyebrow="Administration"
+<x-espace.header :back="route('admin.users.index')" back-label="Utilisateurs" eyebrow="Administration"
               title="Nouveau compte"
-              subtitle="Créez le compte d’un expert, d’un administrateur ou d’un client. La personne reçoit un e-mail pour choisir son mot de passe." />
+              subtitle="Créez le compte d’un expert, d’un gestionnaire boutique, d’un administrateur ou d’un client. La personne reçoit un e-mail pour choisir son mot de passe." />
 
-<section class="max-w-content px-site py-10 lg:py-12">
+<section class="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:py-10">
     <form method="POST" action="{{ route('admin.users.store') }}" class="card max-w-2xl space-y-5">
         @csrf
         <div class="grid gap-5 sm:grid-cols-2">
@@ -31,11 +30,12 @@
 
         <fieldset>
             <legend class="field-label">Rôle *</legend>
-            <div class="mt-1 grid gap-3 sm:grid-cols-3">
+            <div class="mt-1 grid gap-3 sm:grid-cols-2">
                 @foreach([
                     'expert' => 'Suit les projets qui lui sont assignés.',
-                    'admin' => 'Gère les demandes, les comptes et les assignations.',
-                    'client' => 'Dépose des demandes et suit ses projets.',
+                    'manager' => 'Gère les produits, les stocks et les commandes de la boutique.',
+                    'admin' => 'Gère tout : demandes, boutique, comptes et réglages.',
+                    'client' => 'Dépose des demandes, suit ses projets et commande.',
                 ] as $value => $help)
                     <label class="flex cursor-pointer gap-3 rounded-xl border border-line p-4 text-sm has-[:checked]:border-primary-800 has-[:checked]:bg-primary-50/40">
                         <input type="radio" name="role" value="{{ $value }}" class="mt-0.5 h-4 w-4 border-line text-primary-800 focus:ring-primary-500" @checked(old('role', 'expert') === $value)>

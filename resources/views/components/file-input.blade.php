@@ -1,4 +1,4 @@
-@props(['name', 'id' => null, 'multiple' => false, 'hint' => 'PDF, Word, Excel ou image · 5 Mo max par fichier', 'compact' => false])
+@props(['name', 'id' => null, 'multiple' => false, 'hint' => 'PDF, Word, Excel ou image · 5 Mo max par fichier', 'compact' => false, 'accept' => '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg'])
 
 @php $id ??= str_replace(['[', ']'], '', $name).'-'.uniqid(); @endphp
 
@@ -18,7 +18,7 @@
             <span class="block text-xs text-gray-500">{{ $hint }}</span>
         </span>
         <input x-ref="input" id="{{ $id }}" type="file" name="{{ $name }}" @if($multiple) multiple @endif
-               accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" class="sr-only" @change="sync($event)">
+               accept="{{ $accept }}" class="sr-only" @change="sync($event)">
     </label>
     <ul x-show="files.length" x-cloak class="mt-2 space-y-1">
         <template x-for="file in files" :key="file.name">

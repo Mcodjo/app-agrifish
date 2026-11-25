@@ -50,4 +50,9 @@ class PageController extends Controller
     {
         return view('pages.politique-confidentialite');
     }
+
+    public function cgv(): View
+    {
+        return view('pages.cgv');
+    }
 }

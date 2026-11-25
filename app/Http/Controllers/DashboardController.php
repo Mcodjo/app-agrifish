@@ -2,75 +2,102 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProjectMilestone;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestEvent;
+use App\Models\Shop\Order;
+use App\Models\Shop\ProductReview;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    private const FILTERS = [
+    public const FILTERS = [
         'en-cours' => 'En cours',
         'terminees' => 'Terminées',
         'annulees' => 'Annulées',
     ];
 
-    public function index(Request $request)
+    public function index(Request $request): View|RedirectResponse
     {
         $user = $request->user();
+
+        if ($user->isManager()) {
+            return redirect()->route('shop-admin.dashboard');
+        }
+
         $role = $user->isAdmin() ? 'admin' : ($user->isExpert() ? 'expert' : 'client');
+        $counts = self::scoped($user)->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
+        $alerts = self::alerts(self::scoped($user), $user);
 
-        // Admin : toutes les demandes. Expert : celles qui lui sont assignées. Client : les siennes.
-        $scoped = fn (): Builder => ServiceRequest::query()
-            ->when($role === 'expert', fn (Builder $query) => $query->where('assigned_expert_id', $user->id))
-            ->when($role === 'client', fn (Builder $query) => $query->where('client_id', $user->id));
-
-        $filter = array_key_exists((string) $request->query('filtre'), self::FILTERS) ? $request->query('filtre') : null;
-        $search = trim((string) $request->query('q', ''));
-
-        $requests = $scoped()
-            ->with(['assignedExpert', 'client', 'milestones' => fn ($query) => $query->orderBy('sort_order')->orderBy('id')])
+        $openProjects = self::scoped($user)
+            ->with(['assignedExpert', 'client', 'milestones' => fn ($q) => $q->orderBy('sort_order')->orderBy('id')])
             ->withCount(['milestones', 'messages'])
-            ->when($filter === 'en-cours', fn (Builder $query) => $query->whereNotIn('status', ServiceRequest::CLOSED_STATUSES))
-            ->when($filter === 'terminees', fn (Builder $query) => $query->whereIn('status', ['completed', 'closed']))
-            ->when($filter === 'annulees', fn (Builder $query) => $query->where('status', 'cancelled'))
-            ->when($search !== '', fn (Builder $query) => $query->where(function (Builder $query) use ($search): void {
-                $query->where('reference', 'like', "%{$search}%")->orWhere('title', 'like', "%{$search}%");
-            }))
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+            ->whereNotIn('status', ServiceRequest::CLOSED_STATUSES)
+            ->latest('updated_at')
+            ->take($role === 'admin' ? 5 : 4)
+            ->get();
 
-        $counts = $scoped()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
-
-        $alerts = $this->alerts($scoped(), $user);
-
-        $stats = [
-            'total' => $counts->sum(),
-            'open' => $counts->except(ServiceRequest::CLOSED_STATUSES)->sum(),
-            'completed' => $counts->only(['completed', 'closed'])->sum(),
-            'alerts' => $alerts->count(),
+        $data = [
+            'role' => $role,
+            'stats' => [
+                'total' => $counts->sum(),
+                'open' => $counts->except(ServiceRequest::CLOSED_STATUSES)->sum(),
+                'completed' => $counts->only(['completed', 'closed'])->sum(),
+                'alerts' => $alerts->count(),
+            ],
+            'alerts' => $alerts->take(6)->values(),
+            'openProjects' => $openProjects,
         ];
 
-        return view('dashboard', [
-            'requests' => $requests,
-            'stats' => $stats,
-            'alerts' => $alerts->take(5)->values(),
-            'role' => $role,
-            'filters' => self::FILTERS,
-            'currentFilter' => $filter,
-            'search' => $search,
-            'indicators' => $role === 'admin' ? $this->indicators($counts) : null,
-        ]);
+        if ($role === 'client') {
+            $data['orders'] = $user->orders()->withCount('items')->take(3)->get();
+        }
+
+        if ($role === 'expert') {
+            $data['deadlines'] = ProjectMilestone::query()
+                ->with('serviceRequest')
+                ->whereHas('serviceRequest', fn ($q) => $q->where('assigned_expert_id', $user->id)->whereNotIn('status', ServiceRequest::CLOSED_STATUSES))
+                ->whereNotIn('status', ['validated', 'completed'])
+                ->whereNotNull('due_date')
+                ->where('due_date', '<=', now()->addDays(14))
+                ->orderBy('due_date')
+                ->take(6)
+                ->get();
+        }
+
+        if ($role === 'admin') {
+            $data['indicators'] = self::indicators($counts);
+            $data['shop'] = [
+                'month' => (int) Order::query()->whereIn('payment_status', ['paid', 'partially_refunded', 'refunded'])
+                    ->where('paid_at', '>=', now()->startOfMonth())->sum(DB::raw('total - refunded_amount')),
+                'to_process' => Order::query()->whereIn('status', ['new', 'paid', 'preparing', 'ready'])->count(),
+                'reviews' => ProductReview::query()->where('status', 'pending')->count(),
+            ];
+        }
+
+        return view('dashboard', $data);
+    }
+
+    /** Demandes visibles par l'utilisateur : toutes (admin), assignées (expert) ou les siennes (client). */
+    public static function scoped(User $user): Builder
+    {
+        return ServiceRequest::query()
+            ->when($user->isExpert(), fn (Builder $q) => $q->where('assigned_expert_id', $user->id))
+            ->when(! $user->isExpert() && ! $user->isAdmin(), fn (Builder $q) => $q->where('client_id', $user->id));
     }
 
     /** Ce qui attend une intervention de l'utilisateur. */
-    private function alerts(Builder $query, User $user)
+    public static function alerts(Builder $query, User $user): Collection
     {
         return $query
             ->whereNotIn('status', ServiceRequest::CLOSED_STATUSES)
-            ->with(['milestones' => fn ($query) => $query->orderBy('sort_order')])
+            ->with(['milestones' => fn ($q) => $q->orderBy('sort_order')])
             ->latest()
             ->limit(100)
             ->get()
@@ -100,7 +127,7 @@ class DashboardController extends Controller
             ->values();
     }
 
-    private function indicators($counts): array
+    private static function indicators($counts): array
     {
         $since = now()->subDays(90);
 

@@ -52,8 +52,12 @@
         <fieldset>
             <legend class="field-label">E-mails de suivi</legend>
             @php
-                $emailPrefs = ['message_notifications' => 'À chaque nouveau message sur un projet'];
-                if (! $user->isExpert()) {
+                $emailPrefs = $user->isManager() ? [] : ['message_notifications' => 'À chaque nouveau message sur un projet'];
+                if ($user->canManageShop()) {
+                    $emailPrefs['order_notifications'] = 'À chaque nouvelle commande de la boutique';
+                    $emailPrefs['stock_notifications'] = 'Quand un produit passe sous son seuil de stock';
+                }
+                if (! $user->isExpert() && ! $user->isManager()) {
                     $emailPrefs['status_notifications'] = 'À chaque changement de statut de mes demandes';
                 }
                 if ($user->isAdmin()) {

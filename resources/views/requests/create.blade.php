@@ -1,14 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.espace')
 
 @section('title', 'Nouvelle demande')
-@section('espace', true)
 
 @section('content')
-<x-app-header :back="route('dashboard')" back-label="Tableau de bord" eyebrow="Nouvelle demande"
+<x-espace.header :back="route('dashboard')" back-label="Vue d’ensemble" eyebrow="Nouvelle demande"
               title="Décrivez votre projet"
               subtitle="Quelques minutes suffisent. Un expert AgriFish analyse votre demande et vous répond dans votre espace." />
 
-<section class="max-w-content px-site py-10 lg:py-12">
+<section class="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:py-10">
     <div class="grid items-start gap-6 lg:grid-cols-[1fr_20rem]">
         <form action="{{ route('requests.store') }}" method="POST" enctype="multipart/form-data"
               x-data="{ sending: false, desc: @js(old('description', '')) }" @submit="sending = true"
